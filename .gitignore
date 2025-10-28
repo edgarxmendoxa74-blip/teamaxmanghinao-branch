@@ -22,4 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.cursorignore
+
+# Environment variables
 .env
+
+# Supabase
+.supabase/
+supabase/.branches
+supabase/.temp
+supabase/config.toml
+
+# Database files
+*.db
+*.sqlite
+*.sql.backup
+insert-menu-data.sql
+setup-database.sql

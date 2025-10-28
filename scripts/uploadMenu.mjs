@@ -8,8 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-const SUPABASE_URL = 'https://evklwifnoqsjvioyeaas.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV2a2x3aWZub3FzanZpb3llYWFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjExMzMwNjEsImV4cCI6MjA3NjcwOTA2MX0.tk0X4nhG2pGfPjujV093RGhEqkEIrsRnTK28H-kTay4';
+const SUPABASE_URL = 'https://tyrcwxnypeuawrllvisg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5cmN3eG55cGV1YXdybGx2aXNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NjIyODcsImV4cCI6MjA3NzEzODI4N30.nh6Baf7o7AmCdGqDZHCBtyoxlUYCVuggXaGUQrB74X8';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
