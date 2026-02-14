@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MenuItem, CartItem } from '../types';
 import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
@@ -85,10 +85,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
 
         <div className="space-y-24">
           {categories.map((category) => {
-            const categoryItems = useMemo(() =>
-              menuItems.filter(item => item.category === category.id),
-              [menuItems, category.id]
-            );
+            const categoryItems = menuItems.filter(item => item.category === category.id);
 
             if (categoryItems.length === 0) return null;
 
