@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -10,6 +11,7 @@ interface CheckoutProps {
 }
 
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
+  const { siteSettings } = useSiteSettings();
   const { paymentMethods } = usePaymentMethods();
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
@@ -44,29 +46,29 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   };
 
   const handlePlaceOrder = () => {
-    const timeInfo = serviceType === 'pickup' 
+    const timeInfo = serviceType === 'pickup'
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
-    
+
     const formatTime = (timeString: string) => {
       if (!timeString) return '';
       // Parse time in HH:MM format
       const [hour, minute] = timeString.split(':');
-      
+
       // Convert 24-hour to 12-hour format
       const hourNum = parseInt(hour);
       const period = hourNum >= 12 ? 'PM' : 'AM';
       const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-      
+
       return `${hour12}:${minute} ${period}`;
     };
-    
-    const dineInInfo = serviceType === 'dine-in' 
+
+    const dineInInfo = serviceType === 'dine-in'
       ? `👥 Party Size: ${partySize} person${partySize !== 1 ? 's' : ''}\n🕐 Preferred Time: ${formatTime(dineInTime)}`
       : '';
-    
+
     const orderDetails = `
-🛒 Natalna's Restaurant ORDER
+🛒 ${siteSettings?.site_name || "Tea Max Milk Tea Hub"} ORDER
 
 👤 Customer: ${customerName}
 📞 Contact: ${contactNumber}
@@ -78,20 +80,20 @@ ${serviceType === 'dine-in' ? dineInInfo : ''}
 
 📋 ORDER DETAILS:
 ${cartItems.map(item => {
-  let itemDetails = `• ${item.name}`;
-  if (item.selectedVariation) {
-    itemDetails += ` (${item.selectedVariation.name})`;
-  }
-  if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-    itemDetails += ` + ${item.selectedAddOns.map(addOn => 
-      addOn.quantity && addOn.quantity > 1 
-        ? `${addOn.name} x${addOn.quantity}`
-        : addOn.name
-    ).join(', ')}`;
-  }
-  itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
-  return itemDetails;
-}).join('\n')}
+      let itemDetails = `• ${item.name}`;
+      if (item.selectedVariation) {
+        itemDetails += ` (${item.selectedVariation.name})`;
+      }
+      if (item.selectedAddOns && item.selectedAddOns.length > 0) {
+        itemDetails += ` + ${item.selectedAddOns.map(addOn =>
+          addOn.quantity && addOn.quantity > 1
+            ? `${addOn.name} x${addOn.quantity}`
+            : addOn.name
+        ).join(', ')}`;
+      }
+      itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
+      return itemDetails;
+    }).join('\n')}
 
 💰 TOTAL: ₱${totalPrice}
 ${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
@@ -101,18 +103,19 @@ ${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
 
 ${notes ? `📝 Notes: ${notes}` : ''}
 
-Please confirm this order to proceed. Thank you for choosing Natalna's Restaurant! 🍽️
+Please confirm this order to proceed. Thank you for choosing ${siteSettings?.site_name || "Tea Max Milk Tea Hub"}! 🍽️
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/Natalnaph?text=${encodedMessage}`;
-    
+    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'teamaxmilkteahub';
+    const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
+
     window.open(messengerUrl, '_blank');
-    
+
   };
 
-  const isDetailsValid = customerName.trim() && contactNumber.trim() && 
-    (serviceType !== 'delivery' || address.trim()) && 
+  const isDetailsValid = customerName.trim() && contactNumber.trim() &&
+    (serviceType !== 'delivery' || address.trim()) &&
     (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime.trim())) &&
     (serviceType !== 'dine-in' || (partySize > 0 && dineInTime.trim()));
 
@@ -134,7 +137,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
           {/* Order Summary */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Order Summary</h2>
-            
+
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
                 <div key={item.id} className="flex items-center justify-between py-2 border-b border-natalna-beige">
@@ -154,7 +157,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                 </div>
               ))}
             </div>
-            
+
             <div className="border-t border-natalna-beige pt-4">
               <div className="flex items-center justify-between text-2xl font-serif font-semibold text-natalna-dark">
                 <span>Total:</span>
@@ -166,7 +169,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
           {/* Customer Details Form */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Customer Information</h2>
-            
+
             <form className="space-y-6">
               {/* Customer Information */}
               <div>
@@ -206,11 +209,10 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                       key={option.value}
                       type="button"
                       onClick={() => setServiceType(option.value as ServiceType)}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                        serviceType === option.value
-                          ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
-                          : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
-                      }`}
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 ${serviceType === option.value
+                        ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
+                        : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                        }`}
                     >
                       <div className="text-2xl mb-1">{option.icon}</div>
                       <div className="text-sm font-medium">{option.label}</div>
@@ -276,18 +278,17 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                           key={option.value}
                           type="button"
                           onClick={() => setPickupTime(option.value)}
-                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${
-                            pickupTime === option.value
-                              ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
-                              : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
-                          }`}
+                          className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${pickupTime === option.value
+                            ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
+                            : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                            }`}
                         >
                           <Clock className="h-4 w-4 mx-auto mb-1" />
                           {option.label}
                         </button>
                       ))}
                     </div>
-                    
+
                     {pickupTime === 'custom' && (
                       <input
                         type="text"
@@ -316,7 +317,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-black mb-2">Landmark</label>
                     <input
@@ -345,15 +346,14 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
               <button
                 onClick={handleProceedToPayment}
                 disabled={!isDetailsValid}
-                className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform shadow-lg ${
-                  isDetailsValid
-                    ? 'bg-gradient-to-r from-natalna-primary to-natalna-wood text-white hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02]'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform shadow-lg ${isDetailsValid
+                  ? 'bg-gradient-to-r from-natalna-primary to-natalna-wood text-white hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02]'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
                 Proceed to Payment
               </button>
-              
+
               {!isDetailsValid && (
                 <p className="text-xs text-red-500 mt-2 text-center">
                   {!customerName.trim() && 'Please enter your name. '}
@@ -389,18 +389,17 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
         {/* Payment Method Selection */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Choose Payment Method</h2>
-          
+
           <div className="grid grid-cols-1 gap-4 mb-6">
             {paymentMethods.map((method) => (
               <button
                 key={method.id}
                 type="button"
                 onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${
-                  paymentMethod === method.id
-                    ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
-                    : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
-                }`}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${paymentMethod === method.id
+                  ? 'border-natalna-primary bg-natalna-primary text-white shadow-md'
+                  : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                  }`}
               >
                 <span className="text-2xl">💳</span>
                 <span className="font-medium">{method.name}</span>
@@ -420,8 +419,8 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                   <p className="text-xl font-semibold text-black">Amount: ₱{totalPrice}</p>
                 </div>
                 <div className="flex-shrink-0">
-                  <img 
-                    src={selectedPaymentMethod.qr_code_url} 
+                  <img
+                    src={selectedPaymentMethod.qr_code_url}
                     alt={`${selectedPaymentMethod.name} QR Code`}
                     className="w-32 h-32 rounded-lg border-2 border-natalna-gold shadow-md"
                     onError={(e) => {
@@ -446,7 +445,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
         {/* Order Summary */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Final Order Summary</h2>
-          
+
           <div className="space-y-4 mb-6">
             <div className="bg-natalna-cream rounded-lg p-4 border border-natalna-beige">
               <h4 className="font-medium text-black mb-2">Customer Details</h4>
@@ -491,8 +490,8 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
                   )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-sm text-gray-600">
-                      Add-ons: {item.selectedAddOns.map(addOn => 
-                        addOn.quantity && addOn.quantity > 1 
+                      Add-ons: {item.selectedAddOns.map(addOn =>
+                        addOn.quantity && addOn.quantity > 1
                           ? `${addOn.name} x${addOn.quantity}`
                           : addOn.name
                       ).join(', ')}
@@ -504,7 +503,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
               </div>
             ))}
           </div>
-          
+
           <div className="border-t border-red-200 pt-4 mb-6">
             <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black">
               <span>Total:</span>
@@ -518,7 +517,7 @@ Please confirm this order to proceed. Thank you for choosing Natalna's Restauran
           >
             Place Order via Messenger
           </button>
-          
+
           <p className="text-xs text-gray-500 text-center mt-3">
             You'll be redirected to Facebook Messenger to confirm your order. Don't forget to attach your payment screenshot!
           </p>
