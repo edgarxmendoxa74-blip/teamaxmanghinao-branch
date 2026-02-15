@@ -121,6 +121,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center mb-8">
           <button
+            type="button"
             onClick={onBack}
             className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors duration-200"
           >
@@ -301,7 +302,11 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
               </div>
 
               <button
-                onClick={handleProceedToPayment}
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleProceedToPayment();
+                }}
                 disabled={!isDetailsValid}
                 className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform shadow-lg ${isDetailsValid
                   ? 'bg-gradient-to-r from-natalna-primary to-natalna-wood text-black hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02]'
@@ -331,7 +336,11 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex items-center mb-8">
         <button
-          onClick={() => setStep('details')}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setStep('details');
+          }}
           className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors duration-200"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -403,7 +412,11 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 </div>
                 <div className="relative group self-center md:self-auto">
                   <button
-                    onClick={() => setShowQRModal(true)}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowQRModal(true);
+                    }}
                     className="relative block rounded-xl overflow-hidden shadow-xl border-4 border-white transition-transform duration-300 hover:scale-105"
                   >
                     <img
@@ -541,7 +554,11 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
           </div>
 
           <button
-            onClick={handlePlaceOrder}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              handlePlaceOrder();
+            }}
             className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-gradient-to-r from-natalna-primary to-natalna-wood text-black hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02] shadow-lg"
           >
             Place Order via Messenger
