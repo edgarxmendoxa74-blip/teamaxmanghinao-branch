@@ -135,7 +135,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
                   <p className="text-teamax-secondary leading-relaxed mb-3">
                     Select your preferred service type:
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="p-3 bg-teamax-dark border border-teamax-border rounded-xl text-center">
                       <span className="text-teamax-accent font-bold block mb-1">Delivery</span>
                       <span className="text-[10px] text-teamax-secondary uppercase tracking-widest font-bold">To your door</span>
@@ -143,10 +143,6 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
                     <div className="p-3 bg-teamax-dark border border-teamax-border rounded-xl text-center">
                       <span className="text-teamax-accent font-bold block mb-1">Pickup</span>
                       <span className="text-[10px] text-teamax-secondary uppercase tracking-widest font-bold">At restaurant</span>
-                    </div>
-                    <div className="p-3 bg-teamax-dark border border-teamax-border rounded-xl text-center">
-                      <span className="text-teamax-accent font-bold block mb-1">Dine-in</span>
-                      <span className="text-[10px] text-teamax-secondary uppercase tracking-widest font-bold">In house</span>
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Maximize2 } from 'lucide-react';
 import { usePaymentMethods, PaymentMethod } from '../hooks/usePaymentMethods';
 import ImageUpload from './ImageUpload';
 
@@ -20,6 +20,8 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
     active: true,
     sort_order: 0
   });
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [selectedQRUrl, setSelectedQRUrl] = useState('');
 
   React.useEffect(() => {
     refetchAll();
@@ -64,7 +66,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
   };
 
   const handleSaveMethod = async () => {
-    if (!formData.id || !formData.name || !formData.account_number || !formData.account_name || !formData.qr_code_url) {
+    if (!formData.id || !formData.name || !formData.account_name || !formData.qr_code_url) {
       alert('Please fill in all required fields');
       return;
     }
@@ -183,7 +185,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-black mb-2">Account Number/Phone *</label>
+                <label className="block text-sm font-medium text-black mb-2">Account Number/Phone</label>
                 <input
                   type="text"
                   value={formData.account_number}
@@ -294,15 +296,26 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
                   >
                     <div className="flex items-center space-x-4">
-                      <div className="flex-shrink-0">
-                        <img
-                          src={method.qr_code_url}
-                          alt={`${method.name} QR Code`}
-                          className="w-16 h-16 rounded-lg border border-gray-300 object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+                      <div className="flex-shrink-0 relative group">
+                        <button
+                          onClick={() => {
+                            setSelectedQRUrl(method.qr_code_url);
+                            setShowQRModal(true);
                           }}
-                        />
+                          className="relative block rounded-lg overflow-hidden border border-gray-300 transition-transform duration-200 hover:scale-105"
+                        >
+                          <img
+                            src={method.qr_code_url}
+                            alt={`${method.name} QR Code`}
+                            className="w-16 h-16 object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center text-white">
+                            <Maximize2 className="h-4 w-4" />
+                          </div>
+                        </button>
                       </div>
                       <div>
                         <h3 className="font-medium text-black">{method.name}</h3>
@@ -345,6 +358,38 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
           </div>
         </div>
       </div>
+
+      {/* QR Code Modal for Admin */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowQRModal(false)}>
+          <div className="relative bg-white rounded-2xl p-4 max-w-sm w-full animate-scale-in" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setShowQRModal(false)}
+              className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+              aria-label="Close QR Preview"
+            >
+              <X className="h-8 w-8" />
+            </button>
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold text-black">QR Code Preview</h3>
+            </div>
+            <img
+              src={selectedQRUrl}
+              alt="QR Code Large"
+              className="w-full aspect-square rounded-xl shadow-inner object-contain"
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+              }}
+            />
+            <button
+              onClick={() => setShowQRModal(false)}
+              className="w-full mt-4 py-3 bg-black text-white rounded-xl font-bold"
+            >
+              Close Preview
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Maximize2, X } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -16,17 +16,15 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-  const [serviceType, setServiceType] = useState<ServiceType>('dine-in');
+  const [serviceType, setServiceType] = useState<ServiceType>('pickup');
   const [address, setAddress] = useState('');
   const [landmark, setLandmark] = useState('');
   const [pickupTime, setPickupTime] = useState('5-10');
   const [customTime, setCustomTime] = useState('');
-  // Dine-in specific state
-  const [partySize, setPartySize] = useState(1);
-  const [dineInTime, setDineInTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
   const [referenceNumber, setReferenceNumber] = useState('');
   const [notes, setNotes] = useState('');
+  const [showQRModal, setShowQRModal] = useState(false);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -63,9 +61,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
       return `${hour12}:${minute} ${period}`;
     };
 
-    const dineInInfo = serviceType === 'dine-in'
-      ? `👥 Party Size: ${partySize} person${partySize !== 1 ? 's' : ''}\n🕐 Preferred Time: ${formatTime(dineInTime)}`
-      : '';
+
 
     const orderDetails = `
 🛒 ${siteSettings?.site_name || "Tea Max Milk Tea Hub"} ORDER
@@ -75,7 +71,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
 ${serviceType === 'delivery' ? `🏠 Address: ${address}${landmark ? `\n🗺️ Landmark: ${landmark}` : ''}` : ''}
 ${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
-${serviceType === 'dine-in' ? dineInInfo : ''}
+
 
 
 📋 ORDER DETAILS:
@@ -97,9 +93,11 @@ ${cartItems.map(item => {
 
 💰 TOTAL: ₱${totalPrice}
 ${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
-
 💳 Payment: ${selectedPaymentMethod?.name || paymentMethod}
-📸 Payment Screenshot: Please attach your payment receipt screenshot
+${paymentMethod !== 'cod'
+        ? '📸 Payment Screenshot: Please attach your payment receipt screenshot'
+        : '💵 Payment Status: Cash on Delivery'
+      }
 
 ${notes ? `📝 Notes: ${notes}` : ''}
 
@@ -116,8 +114,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
     (serviceType !== 'delivery' || address.trim()) &&
-    (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime.trim())) &&
-    (serviceType !== 'dine-in' || (partySize > 0 && dineInTime.trim()));
+    (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime.trim()));
 
   if (step === 'details') {
     return (
@@ -201,7 +198,6 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 <label className="block text-sm font-medium text-black mb-3">Service Type *</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { value: 'dine-in', label: 'Dine In', icon: '🪑' },
                     { value: 'pickup', label: 'Pickup', icon: '🚶' },
                     { value: 'delivery', label: 'Delivery', icon: '🛵' }
                   ].map((option) => (
@@ -221,46 +217,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 </div>
               </div>
 
-              {/* Dine-in Details */}
-              {serviceType === 'dine-in' && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-2">Party Size *</label>
-                    <div className="flex items-center space-x-4">
-                      <button
-                        type="button"
-                        onClick={() => setPartySize(Math.max(1, partySize - 1))}
-                        className="w-10 h-10 rounded-lg border-2 border-natalna-beige flex items-center justify-center text-natalna-primary hover:border-natalna-primary hover:bg-natalna-cream transition-all duration-200"
-                      >
-                        -
-                      </button>
-                      <span className="text-2xl font-semibold text-black min-w-[3rem] text-center">{partySize}</span>
-                      <button
-                        type="button"
-                        onClick={() => setPartySize(Math.min(20, partySize + 1))}
-                        className="w-10 h-10 rounded-lg border-2 border-natalna-beige flex items-center justify-center text-natalna-primary hover:border-natalna-primary hover:bg-natalna-cream transition-all duration-200"
-                      >
-                        +
-                      </button>
-                      <span className="text-sm text-gray-600 ml-2">person{partySize !== 1 ? 's' : ''}</span>
-                    </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-black mb-2">Preferred Time *</label>
-                    <input
-                      type="time"
-                      value={dineInTime}
-                      onChange={(e) => setDineInTime(e.target.value)}
-                      min="06:00"
-                      max="22:00"
-                      className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Operating hours: 6:00 AM - 10:00 PM</p>
-                  </div>
-                </>
-              )}
 
               {/* Pickup Time Selection */}
               {serviceType === 'pickup' && (
@@ -360,8 +317,6 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   {!contactNumber.trim() && 'Please enter your contact number. '}
                   {serviceType === 'delivery' && !address.trim() && 'Please enter your address. '}
                   {serviceType === 'pickup' && pickupTime === 'custom' && !customTime.trim() && 'Please enter pickup time. '}
-                  {serviceType === 'dine-in' && !dineInTime.trim() && 'Please select your preferred time. '}
-                  {serviceType === 'dine-in' && partySize <= 0 && 'Please select party size. '}
                 </p>
               )}
             </form>
@@ -396,50 +351,139 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 key={method.id}
                 type="button"
                 onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 flex items-center space-x-3 ${paymentMethod === method.id
-                  ? 'border-natalna-primary bg-natalna-primary text-black shadow-md'
-                  : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                className={`group relative p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-between ${paymentMethod === method.id
+                  ? 'border-natalna-primary bg-natalna-primary/5 text-black shadow-lg scale-[1.02]'
+                  : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary hover:scale-[1.01]'
                   }`}
               >
-                <span className="text-2xl">💳</span>
-                <span className="font-medium">{method.name}</span>
+                <div className="flex items-center space-x-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-300 ${paymentMethod === method.id ? 'bg-natalna-primary scale-110' : 'bg-gray-100 group-hover:scale-110'}`}>
+                    {method.id === 'cod' ? '💵' : '💳'}
+                  </div>
+                  <div className="text-left">
+                    <span className="font-semibold block">{method.name}</span>
+                    <span className="text-xs text-gray-500">
+                      {method.id === 'cod' ? 'Pay when you receive' : 'Pay via digital transfer'}
+                    </span>
+                  </div>
+                </div>
+                {paymentMethod === method.id && (
+                  <CheckCircle2 className="h-6 w-6 text-natalna-primary animate-scale-in animate-pulse-subtle" />
+                )}
               </button>
             ))}
           </div>
 
           {/* Payment Details with QR Code */}
           {selectedPaymentMethod && (
-            <div className="bg-natalna-cream rounded-lg p-6 mb-6 border border-natalna-beige">
-              <h3 className="font-medium text-black mb-4">Payment Details</h3>
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-600 mb-1">{selectedPaymentMethod.name}</p>
-                  <p className="font-mono text-black font-medium">{selectedPaymentMethod.account_number}</p>
-                  <p className="text-sm text-gray-600 mb-3">Account Name: {selectedPaymentMethod.account_name}</p>
-                  <p className="text-xl font-semibold text-black">Amount: ₱{totalPrice}</p>
+            <div className="bg-white rounded-xl p-6 mb-6 border-2 border-dashed border-natalna-beige hover:border-natalna-primary transition-colors duration-300">
+              <h3 className="font-medium text-black mb-4 flex items-center">
+                <span className="w-2 h-2 bg-natalna-primary rounded-full mr-2"></span>
+                Payment Details
+              </h3>
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">{selectedPaymentMethod.name}</p>
+                  {selectedPaymentMethod.account_number && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Account Number</span>
+                      <p className="font-mono text-lg text-black font-bold tracking-tight">{selectedPaymentMethod.account_number}</p>
+                    </div>
+                  )}
+                  {selectedPaymentMethod.account_name && (
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Account Name</span>
+                      <p className="text-sm text-black font-medium">{selectedPaymentMethod.account_name}</p>
+                    </div>
+                  )}
+                  <div className="pt-2">
+                    <p className="text-2xl font-bold text-natalna-dark">₱{totalPrice}</p>
+                    <p className="text-[10px] text-gray-400">Exact amount to pay</p>
+                  </div>
                 </div>
-                <div className="flex-shrink-0">
-                  <img
-                    src={selectedPaymentMethod.qr_code_url}
-                    alt={`${selectedPaymentMethod.name} QR Code`}
-                    className="w-32 h-32 rounded-lg border-2 border-natalna-gold shadow-md"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
-                    }}
-                  />
-                  <p className="text-xs text-gray-500 text-center mt-2">Scan to pay</p>
+                <div className="relative group self-center md:self-auto">
+                  <button
+                    onClick={() => setShowQRModal(true)}
+                    className="relative block rounded-xl overflow-hidden shadow-xl border-4 border-white transition-transform duration-300 hover:scale-105"
+                  >
+                    <img
+                      src={selectedPaymentMethod.qr_code_url}
+                      alt={`${selectedPaymentMethod.name} QR Code`}
+                      className="w-40 h-40 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
+                      <Maximize2 className="h-8 w-8 mb-1" />
+                      <span className="text-[10px] font-bold uppercase">Click to View</span>
+                    </div>
+                  </button>
+                  <p className="text-[10px] text-gray-400 text-center mt-2 font-medium uppercase tracking-widest">Scan to Pay</p>
                 </div>
               </div>
             </div>
           )}
 
+          {/* QR Code Modal */}
+          {showQRModal && selectedPaymentMethod && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowQRModal(false)}>
+              <div className="relative bg-white rounded-2xl p-4 max-w-sm w-full animate-scale-in" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+                  aria-label="Close QR Modal"
+                >
+                  <X className="h-8 w-8" />
+                </button>
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold text-black">{selectedPaymentMethod.name}</h3>
+                  <p className="text-sm text-gray-500">Scan this QR code to pay</p>
+                </div>
+                <img
+                  src={selectedPaymentMethod.qr_code_url}
+                  alt="QR Code Large"
+                  className="w-full aspect-square rounded-xl shadow-inner"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.pexels.com/photos/8867482/pexels-photo-8867482.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop';
+                  }}
+                />
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Account:</span>
+                    <span className="font-bold text-black">{selectedPaymentMethod.account_name}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Total:</span>
+                    <span className="font-bold text-natalna-dark">₱{totalPrice}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowQRModal(false)}
+                  className="w-full mt-4 py-3 bg-black text-white rounded-xl font-bold transition-transform active:scale-95"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Reference Number */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h4 className="font-medium text-black mb-2">📸 Payment Proof Required</h4>
-            <p className="text-sm text-gray-700">
-              After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger. This helps us verify and process your order quickly.
-            </p>
-          </div>
+          {paymentMethod !== 'cod' ? (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="font-medium text-black mb-2">📸 Payment Proof Required</h4>
+              <p className="text-sm text-gray-700">
+                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger. This helps us verify and process your order quickly.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 className="font-medium text-black mb-2">💵 Cash on Delivery</h4>
+              <p className="text-sm text-gray-700">
+                Please prepare the exact amount for your order. You will pay when you {serviceType === 'pickup' ? 'pick up your order' : 'receive your delivery'}.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Order Summary */}
@@ -463,22 +507,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   Pickup Time: {pickupTime === 'custom' ? customTime : `${pickupTime} minutes`}
                 </p>
               )}
-              {serviceType === 'dine-in' && (
-                <>
-                  <p className="text-sm text-gray-600">
-                    Party Size: {partySize} person{partySize !== 1 ? 's' : ''}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Preferred Time: {dineInTime ? (() => {
-                      const [hour, minute] = dineInTime.split(':');
-                      const hourNum = parseInt(hour);
-                      const period = hourNum >= 12 ? 'PM' : 'AM';
-                      const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-                      return `${hour12}:${minute} ${period}`;
-                    })() : 'Not selected'}
-                  </p>
-                </>
-              )}
+
             </div>
 
             {cartItems.map((item) => (
