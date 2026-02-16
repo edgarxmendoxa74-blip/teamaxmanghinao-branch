@@ -64,6 +64,14 @@ textarea {
   @apply transition-all duration-300 ease-out;
 }
 
+button:active,
+.button-active:active {
+  transform: scale(0.97) !important;
+  opacity: 0.8 !important;
+  filter: brightness(0.9) !important;
+  transition-duration: 0s !important;
+}
+
 /* Image optimization & Smooth Loading */
 img {
   @apply transition-opacity duration-500;

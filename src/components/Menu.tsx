@@ -102,7 +102,9 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {categoryItems.map((item, index) => {
-                    const cartItem = cartItems.find(cartItem => cartItem.id === item.id);
+                    const totalQuantity = cartItems
+                      .filter(ci => ci.id === item.id || ci.id.startsWith(`${item.id}-`))
+                      .reduce((sum, ci) => sum + ci.quantity, 0);
                     return (
                       <div
                         key={item.id}
@@ -112,7 +114,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
                         <MenuItemCard
                           item={item}
                           onAddToCart={addToCart}
-                          quantity={cartItem?.quantity || 0}
+                          quantity={totalQuantity}
                           onUpdateQuantity={updateQuantity}
                         />
                       </div>

@@ -23,9 +23,9 @@ const SubNav: React.FC<SubNavProps> = ({ selectedCategory, onCategoryClick }) =>
             <>
               <button
                 onClick={() => onCategoryClick('all')}
-                className={`px-5 py-2 rounded-full text-xs transition-all duration-300 border uppercase tracking-widest font-bold ${selectedCategory === 'all'
-                  ? 'bg-white text-black border-2 border-black border-black shadow-lg shadow-black/20 scale-105'
-                  : 'bg-teamax-dark text-teamax-secondary border-teamax-border hover:bg-black hover:text-black hover:border-black'
+                className={`px-5 py-2 rounded-full text-xs transition-all duration-300 border uppercase tracking-widest font-bold whitespace-nowrap active:scale-95 ${selectedCategory === 'all'
+                  ? 'bg-white text-black border-2 border-black shadow-lg scale-105 active:scale-95'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black'
                   }`}
               >
                 All
@@ -34,9 +34,9 @@ const SubNav: React.FC<SubNavProps> = ({ selectedCategory, onCategoryClick }) =>
                 <button
                   key={c.id}
                   onClick={() => onCategoryClick(c.id)}
-                  className={`px-5 py-2 rounded-full text-xs transition-all duration-300 border flex items-center space-x-2 uppercase tracking-widest font-bold ${selectedCategory === c.id
-                    ? 'bg-white text-black border-2 border-black border-black shadow-lg shadow-black/20 scale-105'
-                    : 'bg-teamax-dark text-teamax-secondary border-teamax-border hover:bg-black hover:text-black hover:border-black'
+                  className={`px-5 py-2 rounded-full text-xs transition-all duration-300 border flex items-center space-x-2 uppercase tracking-widest font-bold whitespace-nowrap active:scale-95 ${selectedCategory === c.id
+                    ? 'bg-white text-black border-2 border-black shadow-lg scale-105 active:scale-95'
+                    : 'bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black'
                     }`}
                 >
                   <span className="text-base">{c.icon}</span>

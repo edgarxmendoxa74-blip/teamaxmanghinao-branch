@@ -30,7 +30,7 @@ const Cart: React.FC<CartProps> = ({
           <p className="text-teamax-secondary mb-10 max-w-sm mx-auto">Add some delicious items from our menu to get started with your order!</p>
           <button
             onClick={onContinueShopping}
-            className="bg-white text-black border-2 border-teamax-accent px-10 py-4 rounded-full hover:brightness-110 transition-all font-bold uppercase tracking-widest text-sm shadow-xl shadow-teamax-accent/20"
+            className="bg-white text-black border-2 border-teamax-accent px-10 py-4 rounded-full hover:brightness-110 active:brightness-90 active:scale-95 transition-all font-bold uppercase tracking-widest text-sm shadow-xl shadow-teamax-accent/20"
           >
             Browse Menu
           </button>
@@ -123,7 +123,7 @@ const Cart: React.FC<CartProps> = ({
 
         <button
           onClick={onCheckout}
-          className="w-full bg-white text-black border-2 border-teamax-accent py-5 rounded-2xl hover:brightness-110 transition-all font-bold text-lg uppercase tracking-widest shadow-xl shadow-teamax-accent/20"
+          className="w-full bg-white text-black border-2 border-teamax-accent py-5 rounded-2xl hover:brightness-110 active:brightness-90 active:scale-95 transition-all font-bold text-lg uppercase tracking-widest shadow-xl shadow-teamax-accent/20"
         >
           Proceed to Checkout
         </button>

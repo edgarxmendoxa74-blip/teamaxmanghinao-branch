@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowHowToOrder(true)}
-                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white text-black border-2 border-black hover:bg-black/90 rounded-full transition-all duration-300 font-bold text-xs uppercase tracking-widest border border-black hover:scale-105 active:scale-95 shadow-lg shadow-black/20"
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-full transition-all duration-300 font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 shadow-md"
               >
                 <HelpCircle className="h-4 w-4" />
                 <span>How to Order</span>
@@ -55,12 +55,12 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
 
               <button
                 onClick={onCartClick}
-                className="relative p-3 bg-white text-black border-2 border-black hover:bg-black/90 border border-black rounded-full transition-all duration-300 group hover:scale-110 active:scale-90 shadow-lg"
+                className="relative p-3 bg-white text-black border-2 border-black hover:bg-black hover:text-white rounded-full transition-all duration-300 group hover:scale-110 active:scale-90 shadow-md"
                 title="Cart"
               >
                 <ShoppingCart className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
                 {cartItemsCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-600 text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle border-2 border-teamax-surface shadow-lg">
+                  <span className="absolute -top-2 -right-2 bg-red-100 text-red-600 border border-red-600 text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce-gentle border-2 border-white shadow-lg">
                     {cartItemsCount}
                   </span>
                 )}

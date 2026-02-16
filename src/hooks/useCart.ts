@@ -6,10 +6,15 @@ export const useCart = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const calculateItemPrice = (item: MenuItem, variation?: Variation, addOns?: AddOn[]) => {
-    let price = item.basePrice;
-    if (variation) {
-      price += variation.price;
+    // If a variation is selected, its price replaces the base price
+    let price = variation ? variation.price : (item.effectivePrice || item.basePrice);
+
+    // Apply discount if active on the base item
+    if (item.isOnDiscount && item.discountPrice && item.basePrice > 0) {
+      const discountAmount = item.basePrice - item.discountPrice;
+      price = Math.max(0, price - discountAmount);
     }
+
     if (addOns) {
       addOns.forEach(addOn => {
         price += addOn.price;
@@ -20,7 +25,7 @@ export const useCart = () => {
 
   const addToCart = useCallback((item: MenuItem, quantity: number = 1, variation?: Variation, addOns?: AddOn[]) => {
     const totalPrice = calculateItemPrice(item, variation, addOns);
-    
+
     // Group add-ons by name and sum their quantities
     const groupedAddOns = addOns?.reduce((groups, addOn) => {
       const existing = groups.find(g => g.id === addOn.id);
@@ -31,14 +36,14 @@ export const useCart = () => {
       }
       return groups;
     }, [] as (AddOn & { quantity: number })[]);
-    
+
     setCartItems(prev => {
-      const existingItem = prev.find(cartItem => 
-        cartItem.id === item.id && 
+      const existingItem = prev.find(cartItem =>
+        cartItem.id === item.id &&
         cartItem.selectedVariation?.id === variation?.id &&
         JSON.stringify(cartItem.selectedAddOns?.map(a => `${a.id}-${a.quantity || 1}`).sort()) === JSON.stringify(groupedAddOns?.map(a => `${a.id}-${a.quantity}`).sort())
       );
-      
+
       if (existingItem) {
         return prev.map(cartItem =>
           cartItem === existingItem
@@ -46,8 +51,9 @@ export const useCart = () => {
             : cartItem
         );
       } else {
-        const uniqueId = `${item.id}-${variation?.id || 'default'}-${addOns?.map(a => a.id).join(',') || 'none'}`;
-        return [...prev, { 
+        const isSimpleItem = !variation && (!groupedAddOns || groupedAddOns.length === 0);
+        const uniqueId = isSimpleItem ? item.id : `${item.id}-${variation?.id || 'default'}-${groupedAddOns?.map(a => a.id).join(',') || 'none'}-${Date.now()}`;
+        return [...prev, {
           ...item,
           id: uniqueId,
           quantity,
@@ -64,7 +70,7 @@ export const useCart = () => {
       removeFromCart(id);
       return;
     }
-    
+
     setCartItems(prev =>
       prev.map(item =>
         item.id === id ? { ...item, quantity } : item

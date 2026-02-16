@@ -22,11 +22,20 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const [selectedAddOns, setSelectedAddOns] = useState<(AddOn & { quantity: number })[]>([]);
 
   const calculatePrice = () => {
-    // Use effective price (discounted or regular) as base
-    let price = item.effectivePrice || item.basePrice;
-    if (selectedVariation) {
-      price = (item.effectivePrice || item.basePrice) + selectedVariation.price;
+    // Calculate discount amount if any
+    const discountAmount = item.isOnDiscount && item.discountPrice && item.basePrice > 0
+      ? (item.basePrice - item.discountPrice)
+      : 0;
+
+    // Use selected variation price if available, otherwise use base/effective price
+    let price = selectedVariation ? selectedVariation.price : (item.effectivePrice || item.basePrice);
+
+    // Apply the same discount amount to the variation price if a variation is selected
+    if (selectedVariation && discountAmount > 0) {
+      price = Math.max(0, price - discountAmount);
     }
+
+    // Add add-on prices
     selectedAddOns.forEach(addOn => {
       price += addOn.price * addOn.quantity;
     });
@@ -57,6 +66,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
   const handleDecrement = () => {
     if (quantity > 0) {
+      // Find the first item in cart with this base ID to decrement
+      // This is a simplified approach; in a real app might need more precision
       onUpdateQuantity(item.id, quantity - 1);
     }
   };
@@ -171,25 +182,39 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 >
                   Sold Out
                 </button>
+              ) : (item.variations?.length || item.addOns?.length) ? (
+                <div className="flex items-center space-x-3">
+                  {quantity > 0 && (
+                    <span className="bg-teamax-dark text-black px-3 py-1 rounded-full text-xs font-bold border border-teamax-border">
+                      {quantity} in cart
+                    </span>
+                  )}
+                  <button
+                    onClick={handleAddToCart}
+                    className="bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all duration-200 transform hover:scale-105 active:scale-95 font-bold text-xs uppercase tracking-widest shadow-md"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               ) : quantity === 0 ? (
                 <button
                   onClick={handleAddToCart}
-                  className="bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black/90 transition-all duration-200 transform hover:scale-105 font-bold text-xs uppercase tracking-widest shadow-lg shadow-black/20"
+                  className="bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all duration-200 transform hover:scale-105 active:scale-95 font-bold text-xs uppercase tracking-widest shadow-md"
                 >
-                  {item.variations?.length || item.addOns?.length ? 'Customize' : 'Add to Cart'}
+                  Add to Cart
                 </button>
               ) : (
                 <div className="flex items-center space-x-3 bg-teamax-dark rounded-xl p-1 border border-teamax-border">
                   <button
                     onClick={handleDecrement}
-                    className="p-2 hover:bg-teamax-light rounded-lg transition-colors text-black"
+                    className="p-2 hover:bg-teamax-light active:bg-teamax-light/50 rounded-lg transition-colors text-black active:scale-90"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
                   <span className="font-bold text-black min-w-[20px] text-center">{quantity}</span>
                   <button
                     onClick={handleIncrement}
-                    className="p-2 hover:bg-teamax-light rounded-lg transition-colors text-black"
+                    className="p-2 hover:bg-teamax-light active:bg-teamax-light/50 rounded-lg transition-colors text-black active:scale-90"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
@@ -243,7 +268,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                           <span className="font-medium text-black">{variation.name}</span>
                         </div>
                         <span className="text-teamax-accent font-bold">
-                          +₱{variation.price.toFixed(2)}
+                          ₱{variation.price.toFixed(2)}
                         </span>
                       </label>
                     ))}
@@ -322,7 +347,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
             <div className="p-6 border-t border-teamax-border bg-teamax-dark/50">
               <button
                 onClick={handleCustomizedAddToCart}
-                className="w-full bg-white text-black border-2 border-black py-4 rounded-2xl hover:bg-black/90 transition-all font-bold flex items-center justify-center space-x-3 shadow-xl transform hover:scale-[1.02] shadow-black/20"
+                className="w-full bg-white text-black border-2 border-black py-4 rounded-2xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all font-bold flex items-center justify-center space-x-3 shadow-md transform hover:scale-[1.01] active:scale-95"
               >
                 <ShoppingCart className="h-5 w-5" />
                 <span className="uppercase tracking-widest text-sm">Add to Cart • ₱{calculatePrice().toFixed(2)}</span>

@@ -609,7 +609,7 @@ const AdminDashboard: React.FC = () => {
                     </span>
                     <button
                       onClick={() => setShowBulkActions(!showBulkActions)}
-                      className="px-4 py-2 bg-black/5 text-black rounded-xl hover:bg-black hover:text-black transition-all duration-200 font-bold uppercase tracking-widest text-[10px]"
+                      className="px-4 py-2 bg-black/5 text-black rounded-xl hover:bg-black hover:text-white transition-all duration-200 font-bold uppercase tracking-widest text-[10px]"
                     >
                       Bulk Actions
                     </button>

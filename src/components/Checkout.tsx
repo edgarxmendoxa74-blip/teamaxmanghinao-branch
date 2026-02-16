@@ -128,17 +128,17 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
             <ArrowLeft className="h-5 w-5" />
             <span>Back to Cart</span>
           </button>
-          <h1 className="text-3xl font-serif font-semibold text-natalna-dark ml-8">Order Details</h1>
+          <h1 className="text-3xl font-serif font-semibold text-black ml-8">Order Details</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Summary */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Order Summary</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h2 className="text-2xl font-serif font-medium text-black mb-6">Order Summary</h2>
 
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b border-natalna-beige">
+                <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100">
                   <div>
                     <h4 className="font-medium text-black">{item.name}</h4>
                     {item.selectedVariation && (
@@ -156,8 +156,8 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
               ))}
             </div>
 
-            <div className="border-t border-natalna-beige pt-4">
-              <div className="flex items-center justify-between text-2xl font-serif font-semibold text-natalna-dark">
+            <div className="border-t border-gray-200 pt-4">
+              <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
                 <span>Total:</span>
                 <span>₱{totalPrice}</span>
               </div>
@@ -165,8 +165,8 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
           </div>
 
           {/* Customer Details Form */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Customer Information</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <h2 className="text-2xl font-serif font-medium text-black mb-6">Customer Information</h2>
 
             <form className="space-y-6">
               {/* Customer Information */}
@@ -176,7 +176,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
                   placeholder="Enter your full name"
                   required
                 />
@@ -188,7 +188,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   type="tel"
                   value={contactNumber}
                   onChange={(e) => setContactNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
                   placeholder="09XX XXX XXXX"
                   required
                 />
@@ -197,7 +197,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
               {/* Service Type */}
               <div>
                 <label className="block text-sm font-medium text-black mb-3">Service Type *</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: 'pickup', label: 'Pickup', icon: '🚶' },
                     { value: 'delivery', label: 'Delivery', icon: '🛵' }
@@ -206,9 +206,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                       key={option.value}
                       type="button"
                       onClick={() => setServiceType(option.value as ServiceType)}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 ${serviceType === option.value
-                        ? 'border-natalna-primary bg-natalna-primary text-black shadow-md'
-                        : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center ${serviceType === option.value
+                        ? 'border-black bg-white text-black shadow-md'
+                        : 'border-gray-200 bg-white text-gray-400 hover:border-black/50'
                         }`}
                     >
                       <div className="text-2xl mb-1">{option.icon}</div>
@@ -227,18 +227,18 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { value: '5-10', label: '5-10 minutes' },
-                        { value: '15-20', label: '15-20 minutes' },
-                        { value: '25-30', label: '25-30 minutes' },
-                        { value: 'custom', label: 'Custom Time' }
+                        { value: '5-10', label: '5-10 mins' },
+                        { value: '15-20', label: '15-20 mins' },
+                        { value: '25-30', label: '25-30 mins' },
+                        { value: 'custom', label: 'Custom' }
                       ].map((option) => (
                         <button
                           key={option.value}
                           type="button"
                           onClick={() => setPickupTime(option.value)}
                           className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm ${pickupTime === option.value
-                            ? 'border-natalna-primary bg-natalna-primary text-black shadow-md'
-                            : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary'
+                            ? 'border-black bg-white text-black shadow-md'
+                            : 'border-gray-200 bg-white text-gray-400 hover:border-black/50'
                             }`}
                         >
                           <Clock className="h-4 w-4 mx-auto mb-1" />
@@ -252,8 +252,8 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                         type="text"
                         value={customTime}
                         onChange={(e) => setCustomTime(e.target.value)}
-                        className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
-                        placeholder="e.g., 45 minutes, 1 hour, 2:30 PM"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
+                        placeholder="e.g., 45 minutes, 2:30 PM"
                         required
                       />
                     )}
@@ -269,7 +269,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                     <textarea
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
                       placeholder="Enter your complete delivery address"
                       rows={3}
                       required
@@ -282,8 +282,8 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                       type="text"
                       value={landmark}
                       onChange={(e) => setLandmark(e.target.value)}
-                      className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
-                      placeholder="e.g., Near McDonald's, Beside 7-Eleven, In front of school"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
+                      placeholder="e.g., Near McDonald's"
                     />
                   </div>
                 </>
@@ -295,9 +295,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 border border-natalna-beige rounded-lg focus:ring-2 focus:ring-natalna-primary focus:border-transparent transition-all duration-200"
-                  placeholder="Any special requests or notes..."
-                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
+                  placeholder="Any special requests..."
+                  rows={2}
                 />
               </div>
 
@@ -308,9 +308,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   handleProceedToPayment();
                 }}
                 disabled={!isDetailsValid}
-                className={`w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform shadow-lg ${isDetailsValid
-                  ? 'bg-gradient-to-r from-natalna-primary to-natalna-wood text-black hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02]'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isDetailsValid
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md'
+                  : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
                   }`}
               >
                 Proceed to Payment
@@ -318,10 +318,10 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
               {!isDetailsValid && (
                 <p className="text-xs text-red-500 mt-2 text-center">
-                  {!customerName.trim() && 'Please enter your name. '}
-                  {!contactNumber.trim() && 'Please enter your contact number. '}
-                  {serviceType === 'delivery' && !address.trim() && 'Please enter your address. '}
-                  {serviceType === 'pickup' && pickupTime === 'custom' && !customTime.trim() && 'Please enter pickup time. '}
+                  {!customerName.trim() && 'Name is required. '}
+                  {!contactNumber.trim() && 'Contact is required. '}
+                  {serviceType === 'delivery' && !address.trim() && 'Address is required. '}
+                  {serviceType === 'pickup' && pickupTime === 'custom' && !customTime.trim() && 'Time is required. '}
                 </p>
               )}
             </form>
@@ -346,13 +346,13 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Details</span>
         </button>
-        <h1 className="text-3xl font-serif font-semibold text-natalna-dark ml-8">Payment</h1>
+        <h1 className="text-3xl font-serif font-semibold text-black ml-8">Payment</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Payment Method Selection */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Choose Payment Method</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 className="text-2xl font-serif font-medium text-black mb-6">Choose Payment Method</h2>
 
           <div className="grid grid-cols-1 gap-4 mb-6">
             {paymentMethods.map((method) => (
@@ -361,12 +361,12 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 type="button"
                 onClick={() => setPaymentMethod(method.id as PaymentMethod)}
                 className={`group relative p-4 rounded-xl border-2 transition-all duration-300 flex items-center justify-between ${paymentMethod === method.id
-                  ? 'border-natalna-primary bg-natalna-primary/5 text-black shadow-lg scale-[1.02]'
-                  : 'border-natalna-beige bg-white text-gray-700 hover:border-natalna-secondary hover:scale-[1.01]'
+                  ? 'border-black bg-white text-black shadow-md scale-[1.02]'
+                  : 'border-gray-100 bg-white text-gray-400 hover:border-black/30 hover:scale-[1.01]'
                   }`}
               >
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-300 ${paymentMethod === method.id ? 'bg-natalna-primary scale-110' : 'bg-gray-100 group-hover:scale-110'}`}>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-300 ${paymentMethod === method.id ? 'bg-gray-100 scale-110' : 'bg-gray-50 group-hover:scale-110'}`}>
                     {method.id === 'cod' ? '💵' : '💳'}
                   </div>
                   <div className="text-left">
@@ -377,7 +377,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   </div>
                 </div>
                 {paymentMethod === method.id && (
-                  <CheckCircle2 className="h-6 w-6 text-natalna-primary animate-scale-in animate-pulse-subtle" />
+                  <CheckCircle2 className="h-6 w-6 text-black animate-scale-in animate-pulse-subtle" />
                 )}
               </button>
             ))}
@@ -385,9 +385,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
           {/* Payment Details with QR Code */}
           {selectedPaymentMethod && (
-            <div className="bg-white rounded-xl p-6 mb-6 border-2 border-dashed border-natalna-beige hover:border-natalna-primary transition-colors duration-300">
+            <div className="bg-white rounded-xl p-6 mb-6 border-2 border-dashed border-gray-200 hover:border-black transition-colors duration-300">
               <h3 className="font-medium text-black mb-4 flex items-center">
-                <span className="w-2 h-2 bg-natalna-primary rounded-full mr-2"></span>
+                <span className="w-2 h-2 bg-black rounded-full mr-2"></span>
                 Payment Details
               </h3>
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -406,7 +406,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                     </div>
                   )}
                   <div className="pt-2">
-                    <p className="text-2xl font-bold text-natalna-dark">₱{totalPrice}</p>
+                    <p className="text-2xl font-bold text-black">₱{totalPrice}</p>
                     <p className="text-[10px] text-gray-400">Exact amount to pay</p>
                   </div>
                 </div>
@@ -468,7 +468,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Total:</span>
-                    <span className="font-bold text-natalna-dark">₱{totalPrice}</span>
+                    <span className="font-bold text-black">₱{totalPrice}</span>
                   </div>
                 </div>
                 <button
@@ -483,28 +483,28 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
           {/* Reference Number */}
           {paymentMethod !== 'cod' ? (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2">📸 Payment Proof Required</h4>
               <p className="text-sm text-gray-700">
-                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger. This helps us verify and process your order quickly.
+                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
               </p>
             </div>
           ) : (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2">💵 Cash on Delivery</h4>
               <p className="text-sm text-gray-700">
-                Please prepare the exact amount for your order. You will pay when you {serviceType === 'pickup' ? 'pick up your order' : 'receive your delivery'}.
+                Please prepare exact amount. You will pay when you {serviceType === 'pickup' ? 'pick up' : 'receive'} your order.
               </p>
             </div>
           )}
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h2 className="text-2xl font-serif font-medium text-natalna-dark mb-6">Final Order Summary</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h2 className="text-2xl font-serif font-medium text-black mb-6">Final Order Summary</h2>
 
           <div className="space-y-4 mb-6">
-            <div className="bg-natalna-cream rounded-lg p-4 border border-natalna-beige">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
               <h4 className="font-medium text-black mb-2">Customer Details</h4>
               <p className="text-sm text-gray-600">Name: {customerName}</p>
               <p className="text-sm text-gray-600">Contact: {contactNumber}</p>
@@ -524,7 +524,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
             </div>
 
             {cartItems.map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-2 border-b border-red-100">
+              <div key={item.id} className="flex items-center justify-between py-2 border-b border-gray-100">
                 <div>
                   <h4 className="font-medium text-black">{item.name}</h4>
                   {item.selectedVariation && (
@@ -546,8 +546,8 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
             ))}
           </div>
 
-          <div className="border-t border-red-200 pt-4 mb-6">
-            <div className="flex items-center justify-between text-2xl font-noto font-semibold text-black">
+          <div className="border-t border-gray-200 pt-4 mb-6">
+            <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
               <span>Total:</span>
               <span>₱{totalPrice}</span>
             </div>
@@ -559,13 +559,13 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
               e.preventDefault();
               handlePlaceOrder();
             }}
-            className="w-full py-4 rounded-xl font-medium text-lg transition-all duration-200 transform bg-gradient-to-r from-natalna-primary to-natalna-wood text-black hover:from-natalna-wood hover:to-natalna-wood hover:scale-[1.02] shadow-lg"
+            className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md"
           >
             Place Order via Messenger
           </button>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            You'll be redirected to Facebook Messenger to confirm your order. Don't forget to attach your payment screenshot!
+            You'll be redirected to Messenger to confirm your order.
           </p>
         </div>
       </div>
