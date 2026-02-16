@@ -43,11 +43,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   };
 
   const handleAddToCart = () => {
-    if (item.variations?.length || item.addOns?.length) {
-      setShowCustomization(true);
-    } else {
-      onAddToCart(item, 1);
-    }
+    setShowCustomization(true);
   };
 
   const handleCustomizedAddToCart = () => {
@@ -231,8 +227,8 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           <div className="bg-teamax-surface rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl border border-teamax-border">
             <div className="p-6 border-b border-teamax-border flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-serif font-bold text-black">Customize {item.name}</h3>
-                <p className="text-sm text-teamax-secondary mt-0.5 font-sans">Choose your preferences</p>
+                <h3 className="text-xl font-serif font-bold text-black">{item.name}</h3>
+                <p className="text-xs text-teamax-secondary mt-0.5 font-sans uppercase tracking-widest font-bold">Product Details</p>
               </div>
               <button
                 onClick={() => setShowCustomization(false)}
@@ -243,115 +239,137 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] custom-scrollbar">
-              {/* Size Variations */}
-              {item.variations && item.variations.length > 0 && (
+            <div className="p-0 overflow-y-auto max-h-[calc(90vh-180px)] custom-scrollbar">
+              {/* Product Info Section */}
+              <div className="relative h-48 bg-teamax-dark">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20">☕</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-bottom p-6 flex-col justify-end">
+                  <div className="text-white font-bold text-lg">₱{item.effectivePrice || item.basePrice}</div>
+                </div>
+              </div>
+
+              <div className="p-6">
                 <div className="mb-8">
-                  <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Choose Size</h4>
-                  <div className="space-y-2">
-                    {item.variations.map((variation) => (
-                      <label
-                        key={variation.id}
-                        className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${selectedVariation?.id === variation.id
-                          ? 'border-teamax-accent bg-teamax-accent/10'
-                          : 'border-teamax-border hover:border-teamax-secondary bg-teamax-dark/50'
-                          }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <input
-                            type="radio"
-                            name="variation"
-                            checked={selectedVariation?.id === variation.id}
-                            onChange={() => setSelectedVariation(variation)}
-                            className="w-4 h-4 accent-teamax-accent"
-                          />
-                          <span className="font-medium text-black">{variation.name}</span>
+                  <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-2">Description</h4>
+                  <p className="text-sm text-black leading-relaxed">{item.description}</p>
+                </div>
+                {/* Size Variations */}
+                {item.variations && item.variations.length > 0 && (
+                  <div className="mb-8">
+                    <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Choose Size</h4>
+                    <div className="space-y-2">
+                      {item.variations.map((variation) => (
+                        <label
+                          key={variation.id}
+                          className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${selectedVariation?.id === variation.id
+                            ? 'border-teamax-accent bg-teamax-accent/10'
+                            : 'border-teamax-border hover:border-teamax-secondary bg-teamax-dark/50'
+                            }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <input
+                              type="radio"
+                              name="variation"
+                              checked={selectedVariation?.id === variation.id}
+                              onChange={() => setSelectedVariation(variation)}
+                              className="w-4 h-4 accent-teamax-accent"
+                            />
+                            <span className="font-medium text-black">{variation.name}</span>
+                          </div>
+                          <span className="text-teamax-accent font-bold">
+                            ₱{variation.price.toFixed(2)}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add-ons */}
+                {groupedAddOns && Object.keys(groupedAddOns).length > 0 && (
+                  <div className="mb-6">
+                    <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Add-ons</h4>
+                    {Object.entries(groupedAddOns).map(([category, addOns]) => (
+                      <div key={category} className="mb-4">
+                        <h5 className="text-[10px] font-bold text-teamax-secondary mb-3 uppercase tracking-wider opacity-70">
+                          {category.replace('-', ' ')}
+                        </h5>
+                        <div className="space-y-2">
+                          {addOns.map((addOn) => {
+                            const existing = selectedAddOns.find(a => a.id === addOn.id);
+                            return (
+                              <div
+                                key={addOn.id}
+                                className={`flex items-center justify-between p-3 border rounded-2xl transition-all ${existing ? 'border-teamax-accent bg-teamax-accent/5' : 'border-teamax-border bg-teamax-dark/30'
+                                  }`}
+                              >
+                                <div className="flex-1">
+                                  <span className="font-medium text-black text-sm">{addOn.name}</span>
+                                  {addOn.price > 0 && (
+                                    <div className="text-xs text-teamax-accent font-bold">
+                                      +₱{addOn.price.toFixed(2)}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center">
+                                  {existing ? (
+                                    <div className="flex items-center space-x-3 bg-teamax-dark rounded-xl p-1 border border-teamax-border">
+                                      <button
+                                        type="button"
+                                        onClick={() => updateAddOnQuantity(addOn, existing.quantity - 1)}
+                                        className="p-1 hover:bg-teamax-light rounded-lg text-black"
+                                      >
+                                        <Minus className="h-3.5 w-3.5" />
+                                      </button>
+                                      <span className="font-bold text-black text-xs min-w-[16px] text-center">
+                                        {existing.quantity}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateAddOnQuantity(addOn, existing.quantity + 1)}
+                                        className="p-1 hover:bg-teamax-light rounded-lg text-black"
+                                      >
+                                        <Plus className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateAddOnQuantity(addOn, 1)}
+                                      className="p-2 border border-teamax-border hover:border-teamax-accent rounded-xl text-teamax-secondary hover:text-teamax-accent transition-all"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <span className="text-teamax-accent font-bold">
-                          ₱{variation.price.toFixed(2)}
-                        </span>
-                      </label>
+                      </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
-              {/* Add-ons */}
-              {groupedAddOns && Object.keys(groupedAddOns).length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Add-ons</h4>
-                  {Object.entries(groupedAddOns).map(([category, addOns]) => (
-                    <div key={category} className="mb-4">
-                      <h5 className="text-[10px] font-bold text-teamax-secondary mb-3 uppercase tracking-wider opacity-70">
-                        {category.replace('-', ' ')}
-                      </h5>
-                      <div className="space-y-2">
-                        {addOns.map((addOn) => {
-                          const existing = selectedAddOns.find(a => a.id === addOn.id);
-                          return (
-                            <div
-                              key={addOn.id}
-                              className={`flex items-center justify-between p-3 border rounded-2xl transition-all ${existing ? 'border-teamax-accent bg-teamax-accent/5' : 'border-teamax-border bg-teamax-dark/30'
-                                }`}
-                            >
-                              <div className="flex-1">
-                                <span className="font-medium text-black text-sm">{addOn.name}</span>
-                                {addOn.price > 0 && (
-                                  <div className="text-xs text-teamax-accent font-bold">
-                                    +₱{addOn.price.toFixed(2)}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="flex items-center">
-                                {existing ? (
-                                  <div className="flex items-center space-x-3 bg-teamax-dark rounded-xl p-1 border border-teamax-border">
-                                    <button
-                                      type="button"
-                                      onClick={() => updateAddOnQuantity(addOn, existing.quantity - 1)}
-                                      className="p-1 hover:bg-teamax-light rounded-lg text-black"
-                                    >
-                                      <Minus className="h-3.5 w-3.5" />
-                                    </button>
-                                    <span className="font-bold text-black text-xs min-w-[16px] text-center">
-                                      {existing.quantity}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => updateAddOnQuantity(addOn, existing.quantity + 1)}
-                                      className="p-1 hover:bg-teamax-light rounded-lg text-black"
-                                    >
-                                      <Plus className="h-3.5 w-3.5" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => updateAddOnQuantity(addOn, 1)}
-                                    className="p-2 border border-teamax-border hover:border-teamax-accent rounded-xl text-teamax-secondary hover:text-teamax-accent transition-all"
-                                  >
-                                    <Plus className="h-4 w-4" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="p-6 border-t border-teamax-border bg-teamax-dark/50">
-              <button
-                onClick={handleCustomizedAddToCart}
-                className="w-full bg-white text-black border-2 border-black py-4 rounded-2xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all font-bold flex items-center justify-center space-x-3 shadow-md transform hover:scale-[1.01] active:scale-95"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                <span className="uppercase tracking-widest text-sm">Add to Cart • ₱{calculatePrice().toFixed(2)}</span>
-              </button>
+              <div className="p-6 border-t border-teamax-border bg-teamax-dark/50">
+                <button
+                  onClick={handleCustomizedAddToCart}
+                  className="w-full bg-white text-black border-2 border-black py-4 rounded-2xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all font-bold flex items-center justify-center space-x-3 shadow-md transform hover:scale-[1.01] active:scale-95"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="uppercase tracking-widest text-sm">Add to Cart • ₱{calculatePrice().toFixed(2)}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
