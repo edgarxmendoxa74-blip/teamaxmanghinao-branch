@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, CheckCircle2, Maximize2, X } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, Copy, Check } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -25,6 +25,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [referenceNumber, setReferenceNumber] = useState('');
   const [notes, setNotes] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -43,27 +44,14 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     setStep('payment');
   };
 
-  const handlePlaceOrder = () => {
+
+
+  const generateOrderDetails = () => {
     const timeInfo = serviceType === 'pickup'
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
 
-    const formatTime = (timeString: string) => {
-      if (!timeString) return '';
-      // Parse time in HH:MM format
-      const [hour, minute] = timeString.split(':');
-
-      // Convert 24-hour to 12-hour format
-      const hourNum = parseInt(hour);
-      const period = hourNum >= 12 ? 'PM' : 'AM';
-      const hour12 = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
-
-      return `${hour12}:${minute} ${period}`;
-    };
-
-
-
-    const orderDetails = `
+    return `
 🛒 ${siteSettings?.site_name || "Tea Max Milk Tea Hub"} ORDER
 
 👤 Customer: ${customerName}
@@ -79,6 +67,9 @@ ${cartItems.map(item => {
       let itemDetails = `• ${item.name}`;
       if (item.selectedVariation) {
         itemDetails += ` (${item.selectedVariation.name})`;
+      }
+      if (item.selectedFlavor) {
+        itemDetails += ` (${item.selectedFlavor})`;
       }
       if (item.selectedAddOns && item.selectedAddOns.length > 0) {
         itemDetails += ` + ${item.selectedAddOns.map(addOn =>
@@ -103,14 +94,30 @@ ${notes ? `📝 Notes: ${notes}` : ''}
 
 Please confirm this order to proceed. Thank you for choosing ${siteSettings?.site_name || "Tea Max Milk Tea Hub"}! 🍽️
     `.trim();
+  };
 
+  const handleCopyOrder = async () => {
+    const text = generateOrderDetails();
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const handlePlaceOrder = () => {
+    const orderDetails = generateOrderDetails();
     const encodedMessage = encodeURIComponent(orderDetails);
     const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'teamaxmilkteahub';
     const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
 
     window.open(messengerUrl, '_blank');
-
   };
+
+
+
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
     (serviceType !== 'delivery' || address.trim()) &&
@@ -143,6 +150,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                     <h4 className="font-medium text-black">{item.name}</h4>
                     {item.selectedVariation && (
                       <p className="text-sm text-gray-600">Variation: {item.selectedVariation.name}</p>
+                    )}
+                    {item.selectedFlavor && (
+                      <p className="text-sm text-gray-600">Flavor: {item.selectedFlavor}</p>
                     )}
                     {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                       <p className="text-sm text-gray-600">
@@ -501,7 +511,25 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
         {/* Order Summary */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="text-2xl font-serif font-medium text-black mb-6">Final Order Summary</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-serif font-medium text-black">Final Order Summary</h2>
+            <button
+              onClick={handleCopyOrder}
+              className="flex items-center space-x-2 text-sm font-medium text-teamax-accent hover:text-black transition-colors bg-teamax-accent/10 px-3 py-1.5 rounded-lg"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  <span>Copy Details</span>
+                </>
+              )}
+            </button>
+          </div>
 
           <div className="space-y-4 mb-6">
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -529,6 +557,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   <h4 className="font-medium text-black">{item.name}</h4>
                   {item.selectedVariation && (
                     <p className="text-sm text-gray-600">Variation: {item.selectedVariation.name}</p>
+                  )}
+                  {item.selectedFlavor && (
+                    <p className="text-sm text-gray-600">Flavor: {item.selectedFlavor}</p>
                   )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-sm text-gray-600">

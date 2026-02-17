@@ -68,6 +68,9 @@ const Cart: React.FC<CartProps> = ({
                   {item.selectedVariation && (
                     <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">Variation: <span className="text-teamax-accent">{item.selectedVariation.name}</span></p>
                   )}
+                  {item.selectedFlavor && (
+                    <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">Flavor: <span className="text-teamax-accent">{item.selectedFlavor}</span></p>
+                  )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">
                       Add-ons: <span className="text-teamax-accent">{item.selectedAddOns.map(addOn =>
