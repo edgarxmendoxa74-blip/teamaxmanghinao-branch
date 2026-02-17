@@ -92,7 +92,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           {item.variations && item.variations.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Select Preferred Size</h4>
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Select Preferred Variation</h4>
                 <span className="text-[10px] text-teamax-accent font-bold px-3 py-1 bg-teamax-accent/10 rounded-full">{item.variations.length} Options</span>
               </div>
               <div className="space-y-4">

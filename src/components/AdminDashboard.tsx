@@ -24,6 +24,7 @@ const AdminDashboard: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     name: '',
     description: '',
@@ -501,7 +502,7 @@ const AdminDashboard: React.FC = () => {
             {/* Variations Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-playfair font-medium text-black">Size Variations</h3>
+                <h3 className="text-lg font-playfair font-medium text-black">Variations</h3>
                 <button
                   onClick={addVariation}
                   className="flex items-center space-x-2 px-3 py-2 bg-cream-100 text-black rounded-lg hover:bg-cream-200 transition-colors duration-200"
@@ -530,6 +531,7 @@ const AdminDashboard: React.FC = () => {
                   <button
                     onClick={() => removeVariation(index)}
                     className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                    title="Remove Variation"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -578,6 +580,7 @@ const AdminDashboard: React.FC = () => {
                   <button
                     onClick={() => removeAddOn(index)}
                     className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                    title="Remove Add-on"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -592,11 +595,26 @@ const AdminDashboard: React.FC = () => {
 
   // Items List View
   if (currentView === 'items') {
+    // Filter items based on search term
+    const filteredItems = menuItems.filter(item =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Group items by category
+    const groupedItems = categories.reduce((acc, cat) => {
+      const itemsInCat = filteredItems.filter(item => item.category === cat.id);
+      if (itemsInCat.length > 0) {
+        acc[cat.id] = itemsInCat;
+      }
+      return acc;
+    }, {} as Record<string, MenuItem[]>);
+
     return (
       <div className="min-h-screen bg-teamax-dark">
         <div className="bg-white shadow-sm border-b border-teamax-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+            <div className="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setCurrentView('dashboard')}
@@ -607,6 +625,29 @@ const AdminDashboard: React.FC = () => {
                 </button>
                 <h1 className="text-xl font-serif font-bold text-black">Menu Items</h1>
               </div>
+
+              {/* Enhanced Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Coffee className="h-4 w-4 text-gray-400 rotate-12" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search dishes or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-10 py-3 bg-gray-50 border border-teamax-border rounded-2xl focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none text-sm font-medium"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-black transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
               <div className="flex items-center space-x-3">
                 {showBulkActions && (
                   <div className="flex items-center space-x-2">
@@ -636,7 +677,7 @@ const AdminDashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Bulk Actions Panel */}
           {showBulkActions && selectedItems.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border-l-4 border-blue-500">
+            <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border-l-4 border-black">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-lg font-medium text-black mb-1">Bulk Actions</h3>
@@ -644,17 +685,16 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Change Category */}
                   <div className="flex items-center space-x-2">
                     <label className="text-sm font-medium text-black">Change Category:</label>
                     <select
                       onChange={(e) => {
                         if (e.target.value) {
                           handleBulkCategoryChange(e.target.value);
-                          e.target.value = ''; // Reset selection
+                          e.target.value = '';
                         }
                       }}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="px-3 py-2 border border-teamax-border rounded-lg text-sm"
                       disabled={isProcessing}
                     >
                       <option value="">Select Category</option>
@@ -664,23 +704,21 @@ const AdminDashboard: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Remove Items */}
                   <button
                     onClick={handleBulkRemove}
                     disabled={isProcessing}
-                    className="flex items-center space-x-2 bg-red-100 text-red-600 border border-red-600 px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                    className="flex items-center space-x-2 bg-red-100 text-red-600 border border-red-600 px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
                   >
                     <Trash2 className="h-4 w-4" />
                     <span>{isProcessing ? 'Removing...' : 'Remove Selected'}</span>
                   </button>
 
-                  {/* Clear Selection */}
                   <button
                     onClick={() => {
                       setSelectedItems([]);
                       setShowBulkActions(false);
                     }}
-                    className="flex items-center space-x-2 bg-gray-500 text-black px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm"
+                    className="flex items-center space-x-2 bg-gray-100 text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
                   >
                     <X className="h-4 w-4" />
                     <span>Clear Selection</span>
@@ -690,222 +728,174 @@ const AdminDashboard: React.FC = () => {
             </div>
           )}
 
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            {/* Bulk Actions Bar */}
-            {menuItems.length > 0 && (
-              <div className="bg-gray-50 border-b border-gray-300 px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.length === menuItems.length && menuItems.length > 0}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                      />
-                      <span className="text-sm font-medium text-black">
-                        Select All ({menuItems.length} items)
-                      </span>
-                    </label>
-                  </div>
-                  {selectedItems.length > 0 && (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-black">
-                        {selectedItems.length} item(s) selected
-                      </span>
-                      <button
-                        onClick={() => setSelectedItems([])}
-                        className="text-sm text-black hover:text-black transition-colors duration-200"
-                      >
-                        Clear Selection
-                      </button>
-                    </div>
-                  )}
+          <div className="space-y-12">
+            {Object.keys(groupedItems).length === 0 ? (
+              <div className="bg-white rounded-3xl p-12 text-center border border-teamax-border shadow-sm">
+                <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 border border-teamax-border">
+                  <Package className="h-10 w-10 text-gray-300" />
                 </div>
+                <h3 className="text-xl font-serif font-bold text-black">No dishes found</h3>
+                <p className="text-black/60 mt-2">Try adjusting your search term</p>
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-6 text-xs font-bold uppercase tracking-widest text-black hover:underline"
+                >
+                  Clear search
+                </button>
               </div>
-            )}
+            ) : (
+              categories.map(category => {
+                const items = groupedItems[category.id];
+                if (!items) return null;
 
-            {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">
-                      Select
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Category</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Price</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Variations</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Add-ons</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-medium text-black">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {menuItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => handleSelectItem(item.id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
+                return (
+                  <div key={category.id} className="animate-fade-in">
+                    <div className="flex items-center justify-between mb-6 px-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl bg-white p-2.5 rounded-2xl shadow-sm border border-teamax-border">{category.icon}</span>
                         <div>
-                          <div className="font-medium text-black">{item.name}</div>
-                          <div className="text-sm text-black truncate max-w-xs">{item.description}</div>
+                          <h2 className="text-2xl font-serif font-bold text-black leading-none">{category.name}</h2>
+                          <p className="text-[10px] font-bold text-black/50 uppercase tracking-widest mt-1.5">{items.length} dishes in this category</p>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-black">
-                        {categories.find(cat => cat.id === item.category)?.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-black">
-                        <div className="flex flex-col">
-                          {item.isOnDiscount && item.discountPrice ? (
-                            <>
-                              <span className="text-red-600 font-semibold">₱{item.discountPrice}</span>
-                              <span className="text-black line-through text-xs">₱{item.basePrice}</span>
-                            </>
-                          ) : (
-                            <span>₱{item.basePrice}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-black">
-                        {item.variations?.length || 0} variations
-                      </td>
-                      <td className="px-6 py-4 text-sm text-black">
-                        {item.addOns?.length || 0} add-ons
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col space-y-1">
-                          {item.popular && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600 border border-red-600">
-                              Popular
-                            </span>
-                          )}
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.available
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                            }`}>
-                            {item.available ? 'Available' : 'Unavailable'}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEditItem(item)}
-                            disabled={isProcessing}
-                            className="p-2 text-black hover:text-black hover:bg-gray-100 rounded transition-colors duration-200"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteItem(item.id)}
-                            disabled={isProcessing}
-                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden">
-              {menuItems.map((item) => (
-                <div key={item.id} className={`p-4 border-b border-gray-300 last:border-b-0 ${selectedItems.includes(item.id) ? 'bg-blue-50' : ''}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleSelectItem(item.id)}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                      />
-                      <span className="text-sm text-black">Select</span>
-                    </label>
-                    <div className="flex items-center space-x-2">
+                      </div>
                       <button
-                        onClick={() => handleEditItem(item)}
-                        disabled={isProcessing}
-                        className="p-2 text-black hover:text-black hover:bg-gray-100 rounded transition-colors duration-200"
+                        onClick={() => {
+                          const itemIds = items.map(i => i.id);
+                          const allSelected = itemIds.every(id => selectedItems.includes(id));
+                          if (allSelected) {
+                            setSelectedItems(prev => prev.filter(id => !itemIds.includes(id)));
+                          } else {
+                            setSelectedItems(prev => [...new Set([...prev, ...itemIds])]);
+                          }
+                        }}
+                        className="text-[10px] font-bold uppercase tracking-widest text-black hover:bg-black/5 px-4 py-2 rounded-xl border border-teamax-border transition-all"
                       >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteItem(item.id)}
-                        disabled={isProcessing}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        {items.every(item => selectedItems.includes(item.id)) ? 'Deselect All' : 'Select Category'}
                       </button>
                     </div>
-                  </div>
 
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-black truncate">{item.name}</h3>
-                      <p className="text-sm text-black mt-1 line-clamp-2">{item.description}</p>
-                    </div>
-                  </div>
+                    <div className="bg-white rounded-[2rem] shadow-sm border border-teamax-border overflow-hidden">
+                      {/* Desktop View */}
+                      <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left">
+                          <thead className="bg-gray-50 border-b border-teamax-border">
+                            <tr>
+                              <th className="px-8 py-5 text-[10px] font-bold text-black uppercase tracking-widest">Select</th>
+                              <th className="px-8 py-5 text-[10px] font-bold text-black uppercase tracking-widest">Product</th>
+                              <th className="px-8 py-5 text-[10px] font-bold text-black uppercase tracking-widest">Price</th>
+                              <th className="px-8 py-5 text-[10px] font-bold text-black uppercase tracking-widest">Status</th>
+                              <th className="px-8 py-5 text-[10px] font-bold text-black uppercase tracking-widest text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {items.map((item) => (
+                              <tr key={item.id} className="hover:bg-gray-50/50 transition-colors group">
+                                <td className="px-8 py-6">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedItems.includes(item.id)}
+                                    onChange={() => handleSelectItem(item.id)}
+                                    className="w-5 h-5 rounded-lg border-2 border-teamax-border text-black focus:ring-black transition-all cursor-pointer"
+                                  />
+                                </td>
+                                <td className="px-8 py-6">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100 border border-teamax-border flex-shrink-0">
+                                      {item.image ? (
+                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-2xl opacity-20 group-hover:scale-110 transition-transform">☕</div>
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-black text-base truncate">{item.name}</div>
+                                      <div className="text-xs text-black/50 line-clamp-1 mt-0.5">{item.description}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-8 py-6">
+                                  <div className="flex flex-col">
+                                    {item.isOnDiscount && item.discountPrice ? (
+                                      <>
+                                        <span className="text-black font-bold text-base">₱{item.discountPrice.toFixed(2)}</span>
+                                        <span className="text-black/30 line-through text-[10px] font-bold">₱{item.basePrice.toFixed(2)}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-black font-bold text-base">₱{item.basePrice.toFixed(2)}</span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-8 py-6">
+                                  <div className="flex flex-col gap-1.5">
+                                    {item.popular && (
+                                      <span className="w-fit text-[9px] font-bold uppercase tracking-widest bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full border border-orange-200">Popular</span>
+                                    )}
+                                    <span className={`w-fit text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${item.available
+                                      ? 'bg-green-100 text-green-700 border-green-200'
+                                      : 'bg-red-50 text-red-500 border-red-100'}`}>
+                                      {item.available ? 'Active' : 'Sold Out'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="px-8 py-6 text-right">
+                                  <div className="flex items-center justify-end space-x-2">
+                                    <button
+                                      onClick={() => handleEditItem(item)}
+                                      className="p-2.5 text-black hover:bg-black hover:text-white rounded-xl transition-all border border-teamax-border"
+                                    >
+                                      <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteItem(item.id)}
+                                      className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-all border border-red-100"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-black">Category:</span>
-                      <span className="ml-1 text-black">
-                        {categories.find(cat => cat.id === item.category)?.name}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-black">Price:</span>
-                      <span className="ml-1 font-medium text-black">
-                        {item.isOnDiscount && item.discountPrice ? (
-                          <span className="text-red-600">₱{item.discountPrice}</span>
-                        ) : (
-                          `₱${item.basePrice}`
-                        )}
-                        {item.isOnDiscount && item.discountPrice && (
-                          <span className="text-black line-through text-xs ml-1">₱{item.basePrice}</span>
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-black">Variations:</span>
-                      <span className="ml-1 text-black">{item.variations?.length || 0}</span>
-                    </div>
-                    <div>
-                      <span className="text-black">Add-ons:</span>
-                      <span className="ml-1 text-black">{item.addOns?.length || 0}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center space-x-2">
-                      {item.popular && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-600 border border-red-600">
-                          Popular
-                        </span>
-                      )}
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.available
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}>
-                        {item.available ? 'Available' : 'Unavailable'}
-                      </span>
+                      {/* Mobile View */}
+                      <div className="md:hidden divide-y divide-gray-100">
+                        {items.map((item) => (
+                          <div key={item.id} className={`p-6 ${selectedItems.includes(item.id) ? 'bg-black/5' : ''}`}>
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-4">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedItems.includes(item.id)}
+                                  onChange={() => handleSelectItem(item.id)}
+                                  className="w-5 h-5 rounded-lg border-2 border-teamax-border text-black"
+                                />
+                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-teamax-border">
+                                  {item.image ? (
+                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xl opacity-20">☕</div>
+                                  )}
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-black text-sm">{item.name}</h3>
+                                  <p className="text-[10px] text-black/50">₱{item.basePrice.toFixed(2)}</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <button onClick={() => handleEditItem(item)} className="p-2 border border-teamax-border rounded-lg"><Edit className="h-4 w-4" /></button>
+                                <button onClick={() => handleDeleteItem(item.id)} className="p-2 border border-red-100 text-red-500 rounded-lg"><Trash2 className="h-4 w-4" /></button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>

@@ -142,7 +142,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   <div>
                     <h4 className="font-medium text-black">{item.name}</h4>
                     {item.selectedVariation && (
-                      <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                      <p className="text-sm text-gray-600">Variation: {item.selectedVariation.name}</p>
                     )}
                     {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                       <p className="text-sm text-gray-600">
@@ -528,7 +528,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 <div>
                   <h4 className="font-medium text-black">{item.name}</h4>
                   {item.selectedVariation && (
-                    <p className="text-sm text-gray-600">Size: {item.selectedVariation.name}</p>
+                    <p className="text-sm text-gray-600">Variation: {item.selectedVariation.name}</p>
                   )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-sm text-gray-600">

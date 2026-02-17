@@ -66,7 +66,7 @@ const Cart: React.FC<CartProps> = ({
                 <h3 className="text-xl font-serif font-bold text-black mb-2">{item.name}</h3>
                 <div className="space-y-1">
                   {item.selectedVariation && (
-                    <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">Size: <span className="text-teamax-accent">{item.selectedVariation.name}</span></p>
+                    <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">Variation: <span className="text-teamax-accent">{item.selectedVariation.name}</span></p>
                   )}
                   {item.selectedAddOns && item.selectedAddOns.length > 0 && (
                     <p className="text-xs text-teamax-secondary font-bold uppercase tracking-wider">
