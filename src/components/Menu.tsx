@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { MenuItem, CartItem } from '../types';
 import { useCategories } from '../hooks/useCategories';
 import MenuItemCard from './MenuItemCard';
+import { Search, X } from 'lucide-react';
 
 // Preload images for better performance
 const preloadImages = (items: MenuItem[]) => {
@@ -23,25 +24,35 @@ interface MenuProps {
 const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuantity }) => {
   const { categories } = useCategories();
   const [activeCategory, setActiveCategory] = useState('hot-coffee');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter items based on search term
+  const filteredMenuItems = useMemo(() => {
+    if (!searchTerm.trim()) return menuItems;
+    const term = searchTerm.toLowerCase();
+    return menuItems.filter(item =>
+      item.name.toLowerCase().includes(term) ||
+      item.description?.toLowerCase().includes(term)
+    );
+  }, [menuItems, searchTerm]);
 
   // Preload images when menu items change
   useEffect(() => {
-    if (menuItems.length > 0) {
+    if (filteredMenuItems.length > 0) {
       // Preload images for visible category first
-      const visibleItems = menuItems.filter(item => item.category === activeCategory);
+      const visibleItems = filteredMenuItems.filter(item => item.category === activeCategory);
       preloadImages(visibleItems);
 
       // Then preload other images after a short delay
       setTimeout(() => {
-        const otherItems = menuItems.filter(item => item.category !== activeCategory);
+        const otherItems = filteredMenuItems.filter(item => item.category !== activeCategory);
         preloadImages(otherItems);
       }, 1000);
     }
-  }, [menuItems, activeCategory]);
+  }, [filteredMenuItems, activeCategory]);
 
   useEffect(() => {
     if (categories.length > 0) {
-      // Set default to dim-sum if it exists, otherwise first category
       const defaultCategory = categories.find(cat => cat.id === 'dim-sum') || categories[0];
       if (!categories.find(cat => cat.id === activeCategory)) {
         setActiveCategory(defaultCategory.id);
@@ -50,8 +61,9 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
   }, [categories, activeCategory]);
 
   useEffect(() => {
-    let ticking = false;
+    if (searchTerm.trim()) return; // Disable scroll sync during search
 
+    let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
@@ -73,19 +85,40 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [categories]);
-
+  }, [categories, searchTerm]);
 
   return (
     <>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-serif font-bold text-teamax-primary mb-4">Our Menu</h2>
+          <h2 className="text-4xl font-serif font-bold text-teamax-primary mb-8">Our Menu</h2>
+
+          {/* Search Bar */}
+          <div className="max-w-xl mx-auto relative group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-teamax-secondary group-focus-within:text-black transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search for dishes, drinks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="block w-full pl-12 pr-12 py-4 bg-teamax-surface border-2 border-teamax-border rounded-2xl text-black placeholder:text-teamax-secondary focus:outline-none focus:border-black transition-all shadow-sm hover:shadow-md"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-teamax-secondary hover:text-black transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="space-y-24">
           {categories.map((category) => {
-            const categoryItems = menuItems.filter(item => item.category === category.id);
+            const categoryItems = filteredMenuItems.filter(item => item.category === category.id);
 
             if (categoryItems.length === 0) return null;
 
@@ -100,7 +133,7 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
                   <h3 className="text-3xl font-serif font-bold text-black tracking-tight">{category.name}</h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                   {categoryItems.map((item, index) => {
                     const totalQuantity = cartItems
                       .filter(ci => ci.id === item.id || ci.id.startsWith(`${item.id}-`))
@@ -124,6 +157,20 @@ const Menu: React.FC<MenuProps> = ({ menuItems, addToCart, cartItems, updateQuan
               </section>
             );
           })}
+
+          {filteredMenuItems.length === 0 && (
+            <div className="text-center py-20 bg-teamax-surface rounded-3xl border-2 border-dashed border-teamax-border">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-serif font-bold text-black mb-2">No dishes found</h3>
+              <p className="text-teamax-secondary">Try searching for something else or browse our categories.</p>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-6 text-black font-bold uppercase tracking-widest text-xs border-b-2 border-black pb-1 hover:text-teamax-secondary hover:border-teamax-secondary transition-colors"
+              >
+                Clear Search
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </>

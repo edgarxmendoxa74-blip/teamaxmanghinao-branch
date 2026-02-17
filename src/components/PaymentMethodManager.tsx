@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Maximize2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, CreditCard, Maximize2, CheckCircle2 } from 'lucide-react';
 import { usePaymentMethods, PaymentMethod } from '../hooks/usePaymentMethods';
 import ImageUpload from './ImageUpload';
 
@@ -22,6 +22,7 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
   });
   const [showQRModal, setShowQRModal] = useState(false);
   const [selectedQRUrl, setSelectedQRUrl] = useState('');
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   React.useEffect(() => {
     refetchAll();
@@ -84,6 +85,10 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
       } else {
         await addPaymentMethod(formData);
       }
+
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 3000);
+
       setCurrentView('list');
       setEditingMethod(null);
     } catch (error) {
@@ -387,6 +392,18 @@ const PaymentMethodManager: React.FC<PaymentMethodManagerProps> = ({ onBack }) =
             >
               Close Preview
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Save Success Popup */}
+      {showSaveSuccess && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-bounce-gentle">
+          <div className="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+            <div className="bg-green-500 rounded-full p-1">
+              <CheckCircle2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold uppercase tracking-widest text-xs">Payment Method Saved!</span>
           </div>
         </div>
       )}

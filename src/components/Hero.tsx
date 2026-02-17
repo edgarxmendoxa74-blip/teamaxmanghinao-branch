@@ -4,16 +4,10 @@ import { useSiteSettings } from '../hooks/useSiteSettings';
 
 const DEFAULT_HERO_IMAGES = [
   {
-    url: 'https://images.unsplash.com/photo-1544787210-22dbdc1763f6?q=80&w=2070&auto=format&fit=crop',
-    title: 'Pure Milk Tea &',
-    subtitle: 'Finest Coffee',
-    description: 'Simple ingredients, exceptional taste. Discover our curated selection of handcrafted beverages at Tea Max Milk Tea Hub.'
+    url: 'https://images.unsplash.com/photo-1544787210-22dbdc1763f6?q=80&w=2070&auto=format&fit=crop'
   },
   {
-    url: 'https://images.unsplash.com/photo-1594631252845-29fc45865157?q=80&w=2070&auto=format&fit=crop',
-    title: 'Experience The',
-    subtitle: 'Perfect Brew',
-    description: 'Our coffee is roasted to perfection, bringing out the rich and bold flavors in every cup.'
+    url: 'https://images.unsplash.com/photo-1594631252845-29fc45865157?q=80&w=2070&auto=format&fit=crop'
   }
 ];
 
@@ -26,10 +20,7 @@ const Hero: React.FC = () => {
     : siteSettings
       ? [
         {
-          url: siteSettings.hero_image || DEFAULT_HERO_IMAGES[0].url,
-          title: siteSettings.hero_title || DEFAULT_HERO_IMAGES[0].title,
-          subtitle: siteSettings.hero_subtitle || DEFAULT_HERO_IMAGES[0].subtitle,
-          description: siteSettings.hero_description || DEFAULT_HERO_IMAGES[0].description
+          url: siteSettings.hero_image || DEFAULT_HERO_IMAGES[0].url
         },
         ...DEFAULT_HERO_IMAGES.slice(1)
       ]
@@ -57,13 +48,13 @@ const Hero: React.FC = () => {
         <div className="w-full md:w-1/2 flex items-center justify-center px-8 py-10 md:py-0 z-20 order-2 md:order-1 bg-teamax-dark">
           <div className="max-w-xl text-left">
             <h1 className="text-3xl md:text-5xl font-serif font-bold mb-4 animate-fade-in tracking-tight text-teamax-primary leading-tight">
-              {heroImages[currentSlide].title}
+              {siteSettings?.site_name || 'Tea Max Milk Tea Hub'}
               <span className="block mt-2">
-                {heroImages[currentSlide].subtitle}
+                {siteSettings?.site_tagline || 'Premium Quality Drinks'}
               </span>
             </h1>
             <p className="text-base md:text-lg mb-8 text-black/80 animate-slide-up font-sans leading-relaxed tracking-wide">
-              {heroImages[currentSlide].description}
+              {siteSettings?.site_description || 'Simple ingredients, exceptional taste. Discover our curated selection of handcrafted beverages.'}
             </p>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-8">

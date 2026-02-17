@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, CreditCard, Settings, Database } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, Coffee, TrendingUp, Package, Users, Lock, FolderOpen, CreditCard, Settings, Database, CheckCircle2 } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 import { addOnCategories } from '../data/menuData';
 import { useMenu } from '../hooks/useMenu';
@@ -23,6 +23,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [formData, setFormData] = useState<Partial<MenuItem>>({
     name: '',
     description: '',
@@ -80,6 +81,11 @@ const AdminDashboard: React.FC = () => {
       } else {
         await addMenuItem(formData as Omit<MenuItem, 'id'>);
       }
+
+      // Show success notification
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 3000);
+
       setCurrentView('items');
       setEditingItem(null);
     } catch (error) {
@@ -1122,6 +1128,18 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Save Success Popup */}
+      {showSaveSuccess && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-bounce-gentle">
+          <div className="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+            <div className="bg-green-500 rounded-full p-1">
+              <CheckCircle2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold uppercase tracking-widest text-xs">Changes Saved Successfully!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

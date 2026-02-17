@@ -1,5 +1,6 @@
 import React, { useState, memo } from 'react';
-import { Plus, Minus, X, ShoppingCart } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Plus, Minus, ShoppingCart, X } from 'lucide-react';
 import { MenuItem, Variation, AddOn } from '../types';
 
 interface MenuItemCardProps {
@@ -15,376 +16,232 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   quantity,
   onUpdateQuantity
 }) => {
-  const [showCustomization, setShowCustomization] = useState(false);
+  const [localQuantity, setLocalQuantity] = useState(1);
+  const [showVariationModal, setShowVariationModal] = useState(false);
   const [selectedVariation, setSelectedVariation] = useState<Variation | undefined>(
     item.variations?.[0]
   );
-  const [selectedAddOns, setSelectedAddOns] = useState<(AddOn & { quantity: number })[]>([]);
 
-  const calculatePrice = () => {
-    // Calculate discount amount if any
-    const discountAmount = item.isOnDiscount && item.discountPrice && item.basePrice > 0
-      ? (item.basePrice - item.discountPrice)
-      : 0;
+  const handleAddToCartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!item.available) return;
 
-    // Use selected variation price if available, otherwise use base/effective price
-    let price = selectedVariation ? selectedVariation.price : (item.effectivePrice || item.basePrice);
-
-    // Apply the same discount amount to the variation price if a variation is selected
-    if (selectedVariation && discountAmount > 0) {
-      price = Math.max(0, price - discountAmount);
-    }
-
-    // Add add-on prices
-    selectedAddOns.forEach(addOn => {
-      price += addOn.price * addOn.quantity;
-    });
-    return price;
-  };
-
-  const handleAddToCart = () => {
-    setShowCustomization(true);
-  };
-
-  const handleCustomizedAddToCart = () => {
-    // Convert selectedAddOns back to regular AddOn array for cart
-    const addOnsForCart: AddOn[] = selectedAddOns.flatMap(addOn =>
-      Array(addOn.quantity).fill({ ...addOn, quantity: undefined })
-    );
-    onAddToCart(item, 1, selectedVariation, addOnsForCart);
-    setShowCustomization(false);
-    setSelectedAddOns([]);
-  };
-
-  const handleIncrement = () => {
-    onUpdateQuantity(item.id, quantity + 1);
-  };
-
-  const handleDecrement = () => {
-    if (quantity > 0) {
-      // Find the first item in cart with this base ID to decrement
-      // This is a simplified approach; in a real app might need more precision
-      onUpdateQuantity(item.id, quantity - 1);
+    if (item.variations && item.variations.length > 1) {
+      setShowVariationModal(true);
+    } else {
+      onAddToCart(item, localQuantity, item.variations?.[0]);
+      setLocalQuantity(1); // Reset after adding
     }
   };
 
-  const updateAddOnQuantity = (addOn: AddOn, quantity: number) => {
-    setSelectedAddOns(prev => {
-      const existingIndex = prev.findIndex(a => a.id === addOn.id);
-
-      if (quantity === 0) {
-        // Remove add-on if quantity is 0
-        return prev.filter(a => a.id !== addOn.id);
-      }
-
-      if (existingIndex >= 0) {
-        // Update existing add-on quantity
-        const updated = [...prev];
-        updated[existingIndex] = { ...updated[existingIndex], quantity };
-        return updated;
-      } else {
-        // Add new add-on with quantity
-        return [...prev, { ...addOn, quantity }];
-      }
-    });
+  const handleConfirmVariation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart(item, localQuantity, selectedVariation);
+    setShowVariationModal(false);
+    setLocalQuantity(1);
   };
 
-  const groupedAddOns = item.addOns?.reduce((groups, addOn) => {
-    const category = addOn.category;
-    if (!groups[category]) {
-      groups[category] = [];
-    }
-    groups[category].push(addOn);
-    return groups;
-  }, {} as Record<string, AddOn[]>);
-
-  return (
-    <>
-      <div className={`bg-teamax-surface rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group animate-scale-in border border-teamax-border ${!item.available ? 'opacity-60' : ''}`}>
-        {/* Image Container with Badges */}
-        <div className="relative h-48 bg-teamax-dark overflow-hidden">
+  const variationModal = showVariationModal && createPortal(
+    <div
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-fade-in"
+      onClick={() => setShowVariationModal(false)}
+    >
+      <div
+        className="relative bg-white w-full sm:max-w-md h-[90vh] sm:h-auto sm:rounded-[2.5rem] rounded-t-[2.5rem] overflow-hidden animate-scale-in shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Image Header */}
+        <div className="relative h-56 sm:h-64 w-full bg-teamax-dark shrink-0">
           {item.image ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
+            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20">☕</div>
           )}
-
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {item.isOnDiscount && item.discountPrice && (
-              <div className="bg-red-100 text-red-600 border border-red-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
-                SALE
-              </div>
-            )}
-            {item.popular && (
-              <div className="bg-white text-black border-2 border-teamax-accent text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">
-                ⭐ POPULAR
-              </div>
-            )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          <button
+            onClick={() => setShowVariationModal(false)}
+            className="absolute top-6 right-6 p-2.5 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-full transition-all text-white group z-10"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6 group-hover:rotate-90 transition-transform duration-300" />
+          </button>
+          <div className="absolute bottom-8 left-8 right-8">
+            <h3 className="text-3xl font-serif font-bold text-white leading-tight">{item.name}</h3>
+            <p className="text-white/70 text-xs uppercase tracking-[0.2em] font-medium mt-1">Customize your order</p>
           </div>
-
-          {!item.available && (
-            <div className="absolute top-3 right-3 bg-red-100 text-red-500 border border-red-500 text-[10px] font-bold px-3 py-1 rounded-full">
-              UNAVAILABLE
-            </div>
-          )}
         </div>
 
-        {/* Content */}
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-2">
-            <h4 className="text-lg font-serif font-bold text-black leading-tight flex-1 pr-2">{item.name}</h4>
-            {item.variations && item.variations.length > 0 && (
-              <div className="text-[10px] text-teamax-secondary border border-teamax-border px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">
-                {item.variations.length} sizes
-              </div>
-            )}
+        <div className="p-8 flex-1 overflow-y-auto scrollbar-hide">
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-6">
+              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Select Preferred Size</h4>
+              <span className="text-[10px] text-teamax-accent font-bold px-3 py-1 bg-teamax-accent/10 rounded-full">{item.variations?.length} Options Available</span>
+            </div>
+            <div className="space-y-4">
+              {item.variations?.map((v) => (
+                <label
+                  key={v.id}
+                  onClick={() => setSelectedVariation(v)}
+                  className={`group flex items-center justify-between p-5 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${selectedVariation?.id === v.id
+                    ? 'border-black bg-gray-50 shadow-md transform scale-[1.02]'
+                    : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50/50'}`}
+                >
+                  <div className="flex items-center space-x-5">
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${selectedVariation?.id === v.id ? 'border-black bg-black' : 'border-gray-300'}`}>
+                      {selectedVariation?.id === v.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                    </div>
+                    <span className={`text-base font-bold tracking-wider uppercase transition-colors ${selectedVariation?.id === v.id ? 'text-black' : 'text-gray-500 group-hover:text-black'}`}>{v.name}</span>
+                  </div>
+                  <span className={`text-base font-bold transition-colors ${selectedVariation?.id === v.id ? 'text-black' : 'text-gray-400'}`}>₱{v.price.toFixed(2)}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
-          <p className={`text-sm mb-6 leading-relaxed line-clamp-2 ${!item.available ? 'text-gray-600' : 'text-teamax-secondary'}`}>
-            {!item.available ? 'Currently Unavailable' : item.description}
-          </p>
-
-          {/* Pricing Section */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              {item.isOnDiscount && item.discountPrice ? (
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold text-teamax-accent">
-                    ₱{item.discountPrice.toFixed(2)}
-                  </span>
-                  <span className="text-xs text-gray-600 line-through">
-                    ₱{item.basePrice.toFixed(2)}
-                  </span>
-                </div>
-              ) : (
-                <div className="text-xl font-bold text-black">
-                  ₱{item.basePrice.toFixed(2)}
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex-shrink-0">
-              {!item.available ? (
-                <button
-                  disabled
-                  className="bg-teamax-light text-gray-500 px-4 py-2 rounded-xl cursor-not-allowed font-bold text-xs uppercase"
-                >
-                  Sold Out
-                </button>
-              ) : (item.variations?.length || item.addOns?.length) ? (
-                <div className="flex items-center space-x-3">
-                  {quantity > 0 && (
-                    <span className="bg-teamax-dark text-black px-3 py-1 rounded-full text-xs font-bold border border-teamax-border">
-                      {quantity} in cart
-                    </span>
-                  )}
+          <div className="space-y-6 shrink-0 pb-4">
+            <div className="flex items-center justify-between border-t border-gray-100 pt-6 px-2">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Quantity</span>
+                <div className="flex items-center gap-4 mt-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
                   <button
-                    onClick={handleAddToCart}
-                    className="bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all duration-200 transform hover:scale-105 active:scale-95 font-bold text-xs uppercase tracking-widest shadow-md"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              ) : quantity === 0 ? (
-                <button
-                  onClick={handleAddToCart}
-                  className="bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all duration-200 transform hover:scale-105 active:scale-95 font-bold text-xs uppercase tracking-widest shadow-md"
-                >
-                  Add to Cart
-                </button>
-              ) : (
-                <div className="flex items-center space-x-3 bg-teamax-dark rounded-xl p-1 border border-teamax-border">
-                  <button
-                    onClick={handleDecrement}
-                    className="p-2 hover:bg-teamax-light active:bg-teamax-light/50 rounded-lg transition-colors text-black active:scale-90"
+                    onClick={() => setLocalQuantity(Math.max(1, localQuantity - 1))}
+                    className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all active:scale-90 text-black"
                   >
                     <Minus className="h-4 w-4" />
                   </button>
-                  <span className="font-bold text-black min-w-[20px] text-center">{quantity}</span>
+                  <span className="font-bold text-lg min-w-[24px] text-center">{localQuantity}</span>
                   <button
-                    onClick={handleIncrement}
-                    className="p-2 hover:bg-teamax-light active:bg-teamax-light/50 rounded-lg transition-colors text-black active:scale-90"
+                    onClick={() => setLocalQuantity(localQuantity + 1)}
+                    className="p-2 hover:bg-white hover:shadow-sm rounded-xl transition-all active:scale-90 text-black"
                   >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
-              )}
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] block mb-1">Total Amount</span>
+                <span className="text-3xl font-bold text-black block tracking-tight">₱{((selectedVariation?.price || 0) * localQuantity).toFixed(2)}</span>
+              </div>
             </div>
+            <button
+              onClick={handleConfirmVariation}
+              className="w-full bg-black text-white py-6 rounded-[1.5rem] hover:bg-gray-900 active:scale-95 transition-all font-bold flex items-center justify-center gap-4 shadow-2xl shadow-black/20 group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+              <ShoppingCart className="h-6 w-6" />
+              <span className="uppercase tracking-[0.2em] text-xs">Confirm & Add to Cart</span>
+            </button>
           </div>
         </div>
       </div>
+    </div>,
+    document.body
+  );
 
-      {/* Customization Modal */}
-      {showCustomization && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-teamax-surface rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl border border-teamax-border">
-            <div className="p-6 border-b border-teamax-border flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-serif font-bold text-black">{item.name}</h3>
-                <p className="text-xs text-teamax-secondary mt-0.5 font-sans uppercase tracking-widest font-bold">Product Details</p>
-              </div>
-              <button
-                onClick={() => setShowCustomization(false)}
-                className="p-2 hover:bg-teamax-light rounded-full transition-colors"
-                title="Close"
-              >
-                <X className="h-6 w-6 text-teamax-secondary" />
-              </button>
+  return (
+    <div
+      className={`bg-teamax-surface rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group animate-scale-in border border-teamax-border ${!item.available ? 'opacity-60' : ''}`}
+    >
+      {/* Image Container */}
+      <div className="relative h-32 sm:h-48 bg-teamax-dark overflow-hidden">
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-full h-full object-cover transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20">☕</div>
+        )}
+
+        {/* Badges */}
+        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2">
+          {item.isOnDiscount && item.discountPrice && (
+            <div className="bg-red-100 text-red-600 border border-red-600 text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">SALE</div>
+          )}
+          {item.popular && (
+            <div className="bg-white text-black border-2 border-teamax-accent text-[10px] font-bold px-3 py-1 rounded-full shadow-lg">⭐ POPULAR</div>
+          )}
+          {quantity > 0 && (
+            <div className="bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">🛒 {quantity} IN CART</div>
+          )}
+        </div>
+
+        {!item.available && (
+          <div className="absolute top-3 right-3 bg-red-100 text-red-500 border border-red-500 text-[10px] font-bold px-3 py-1 rounded-full">UNAVAILABLE</div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="p-3 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
+          <h4 className="text-sm sm:text-lg font-serif font-bold text-black leading-tight flex-1 sm:pr-2 mb-1 sm:mb-0 line-clamp-1">{item.name}</h4>
+          {item.variations && item.variations.length > 0 && (
+            <div className="text-[10px] text-teamax-secondary border border-teamax-border px-2 py-0.5 rounded-full uppercase tracking-wider font-bold w-fit">
+              {item.variations.length} sizes
             </div>
+          )}
+        </div>
 
-            <div className="p-0 overflow-y-auto max-h-[calc(90vh-180px)] custom-scrollbar">
-              {/* Product Info Section */}
-              <div className="relative h-48 bg-teamax-dark">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-20">☕</div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-bottom p-6 flex-col justify-end">
-                  <div className="text-white font-bold text-lg">₱{item.effectivePrice || item.basePrice}</div>
-                </div>
+        <p className="text-xs sm:text-sm mb-3 sm:mb-4 text-teamax-secondary leading-relaxed line-clamp-1">
+          {!item.available ? 'Currently Unavailable' : item.description}
+        </p>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            {item.isOnDiscount && item.discountPrice ? (
+              <div className="flex flex-col">
+                <span className="text-base sm:text-xl font-bold text-teamax-accent">₱{item.discountPrice.toFixed(2)}</span>
+                <span className="text-[10px] sm:text-xs text-gray-600 line-through">₱{item.basePrice.toFixed(2)}</span>
               </div>
+            ) : (
+              <div className="text-base sm:text-xl font-bold text-black">₱{(item.effectivePrice || item.basePrice).toFixed(2)}</div>
+            )}
 
-              <div className="p-6">
-                <div className="mb-8">
-                  <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-2">Description</h4>
-                  <p className="text-sm text-black leading-relaxed">{item.description}</p>
-                </div>
-                {/* Size Variations */}
-                {item.variations && item.variations.length > 0 && (
-                  <div className="mb-8">
-                    <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Choose Size</h4>
-                    <div className="space-y-2">
-                      {item.variations.map((variation) => (
-                        <label
-                          key={variation.id}
-                          className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${selectedVariation?.id === variation.id
-                            ? 'border-teamax-accent bg-teamax-accent/10'
-                            : 'border-teamax-border hover:border-teamax-secondary bg-teamax-dark/50'
-                            }`}
-                        >
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="radio"
-                              name="variation"
-                              checked={selectedVariation?.id === variation.id}
-                              onChange={() => setSelectedVariation(variation)}
-                              className="w-4 h-4 accent-teamax-accent"
-                            />
-                            <span className="font-medium text-black">{variation.name}</span>
-                          </div>
-                          <span className="text-teamax-accent font-bold">
-                            ₱{variation.price.toFixed(2)}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Add-ons */}
-                {groupedAddOns && Object.keys(groupedAddOns).length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-xs font-bold text-teamax-secondary uppercase tracking-widest mb-4">Add-ons</h4>
-                    {Object.entries(groupedAddOns).map(([category, addOns]) => (
-                      <div key={category} className="mb-4">
-                        <h5 className="text-[10px] font-bold text-teamax-secondary mb-3 uppercase tracking-wider opacity-70">
-                          {category.replace('-', ' ')}
-                        </h5>
-                        <div className="space-y-2">
-                          {addOns.map((addOn) => {
-                            const existing = selectedAddOns.find(a => a.id === addOn.id);
-                            return (
-                              <div
-                                key={addOn.id}
-                                className={`flex items-center justify-between p-3 border rounded-2xl transition-all ${existing ? 'border-teamax-accent bg-teamax-accent/5' : 'border-teamax-border bg-teamax-dark/30'
-                                  }`}
-                              >
-                                <div className="flex-1">
-                                  <span className="font-medium text-black text-sm">{addOn.name}</span>
-                                  {addOn.price > 0 && (
-                                    <div className="text-xs text-teamax-accent font-bold">
-                                      +₱{addOn.price.toFixed(2)}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex items-center">
-                                  {existing ? (
-                                    <div className="flex items-center space-x-3 bg-teamax-dark rounded-xl p-1 border border-teamax-border">
-                                      <button
-                                        type="button"
-                                        onClick={() => updateAddOnQuantity(addOn, existing.quantity - 1)}
-                                        className="p-1 hover:bg-teamax-light rounded-lg text-black"
-                                      >
-                                        <Minus className="h-3.5 w-3.5" />
-                                      </button>
-                                      <span className="font-bold text-black text-xs min-w-[16px] text-center">
-                                        {existing.quantity}
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={() => updateAddOnQuantity(addOn, existing.quantity + 1)}
-                                        className="p-1 hover:bg-teamax-light rounded-lg text-black"
-                                      >
-                                        <Plus className="h-3.5 w-3.5" />
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => updateAddOnQuantity(addOn, 1)}
-                                      className="p-2 border border-teamax-border hover:border-teamax-accent rounded-xl text-teamax-secondary hover:text-teamax-accent transition-all"
-                                    >
-                                      <Plus className="h-4 w-4" />
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="p-6 border-t border-teamax-border bg-teamax-dark/50">
+            {item.available && (
+              <div className="flex items-center gap-2 bg-teamax-dark rounded-xl p-1 border border-teamax-border scale-90 sm:scale-100 origin-right">
                 <button
-                  onClick={handleCustomizedAddToCart}
-                  className="w-full bg-white text-black border-2 border-black py-4 rounded-2xl hover:bg-black hover:text-white active:bg-black active:text-white transition-all font-bold flex items-center justify-center space-x-3 shadow-md transform hover:scale-[1.01] active:scale-95"
+                  onClick={(e) => { e.stopPropagation(); setLocalQuantity(Math.max(1, localQuantity - 1)); }}
+                  title="Decrease quantity"
+                  className="p-1 sm:p-2 hover:bg-teamax-light rounded-lg text-black active:scale-90"
                 >
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="uppercase tracking-widest text-sm">Add to Cart • ₱{calculatePrice().toFixed(2)}</span>
+                  <Minus className="h-3 sm:h-4 w-3 sm:w-4" />
+                </button>
+                <span className="font-bold text-black min-w-[16px] text-center text-xs sm:text-base">{localQuantity}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setLocalQuantity(localQuantity + 1); }}
+                  title="Increase quantity"
+                  className="p-1 sm:p-2 hover:bg-teamax-light rounded-lg text-black active:scale-90"
+                >
+                  <Plus className="h-3 sm:h-4 w-3 sm:w-4" />
                 </button>
               </div>
-            </div>
+            )}
           </div>
+
+          {!item.available ? (
+            <button disabled className="w-full bg-teamax-light text-gray-500 px-4 py-3 rounded-xl cursor-not-allowed font-bold text-[10px] uppercase">Sold Out</button>
+          ) : (
+            <button
+              onClick={handleAddToCartClick}
+              className="w-full bg-white text-black border-2 border-black px-6 py-2.5 rounded-xl hover:bg-black hover:text-white active:scale-95 transition-all font-bold text-[10px] sm:text-xs uppercase tracking-widest shadow-md flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </button>
+          )}
         </div>
-      )}
-    </>
+      </div>
+
+      {variationModal}
+    </div>
   );
 };
-
-export default memo(MenuItemCard, (prevProps, nextProps) => {
-  // Only re-render if these props change
-  return (
-    prevProps.item.id === nextProps.item.id &&
-    prevProps.quantity === nextProps.quantity &&
-    prevProps.item.available === nextProps.item.available &&
-    prevProps.item.basePrice === nextProps.item.basePrice &&
-    prevProps.item.effectivePrice === nextProps.item.effectivePrice
-  );
-});
+export default memo(MenuItemCard, (prev, next) => (
+  prev.item.id === next.item.id &&
+  prev.quantity === next.quantity &&
+  prev.item.available === next.item.available &&
+  prev.item.basePrice === next.item.basePrice &&
+  prev.item.effectivePrice === next.item.effectivePrice
+));

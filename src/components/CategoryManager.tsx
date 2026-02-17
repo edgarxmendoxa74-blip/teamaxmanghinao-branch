@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, ArrowLeft, GripVertical } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ArrowLeft, GripVertical, CheckCircle2 } from 'lucide-react';
 import { useCategories, Category } from '../hooks/useCategories';
 
 interface CategoryManagerProps {
@@ -17,6 +17,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ onBack }) => {
     sort_order: 0,
     active: true
   });
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   const handleAddCategory = () => {
     const nextSortOrder = Math.max(...categories.map(c => c.sort_order), 0) + 1;
@@ -71,6 +72,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ onBack }) => {
       } else {
         await addCategory(formData);
       }
+
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 3000);
+
       setCurrentView('list');
       setEditingCategory(null);
     } catch (error) {
@@ -316,6 +321,18 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Save Success Popup */}
+      {showSaveSuccess && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-bounce-gentle">
+          <div className="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+            <div className="bg-green-500 rounded-full p-1">
+              <CheckCircle2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold uppercase tracking-widest text-xs">Category Saved Successfully!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

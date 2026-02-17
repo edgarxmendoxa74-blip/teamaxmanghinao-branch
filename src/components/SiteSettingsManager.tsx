@@ -26,9 +26,6 @@ const SiteSettingsManager: React.FC = () => {
   const [logoPreview, setLogoPreview] = useState<string>('');
   const [heroSlides, setHeroSlides] = useState<Array<{
     url: string;
-    title: string;
-    subtitle: string;
-    description: string;
   }>>([]);
   const [slideFiles, setSlideFiles] = useState<Map<number, File>>(new Map());
 
@@ -56,10 +53,7 @@ const SiteSettingsManager: React.FC = () => {
       } else {
         // Initialize with single hero settings if no slides exist
         setHeroSlides([{
-          url: siteSettings.hero_image,
-          title: siteSettings.hero_title,
-          subtitle: siteSettings.hero_subtitle,
-          description: siteSettings.hero_description
+          url: siteSettings.hero_image
         }]);
       }
     }
@@ -89,10 +83,7 @@ const SiteSettingsManager: React.FC = () => {
     setHeroSlides(prev => [
       ...prev,
       {
-        url: 'https://images.unsplash.com/photo-1544787210-22dbdc1763f6?q=80&w=2070&auto=format&fit=crop',
-        title: 'New Slide',
-        subtitle: 'Subtitle',
-        description: 'Description'
+        url: 'https://images.unsplash.com/photo-1544787210-22dbdc1763f6?q=80&w=2070&auto=format&fit=crop'
       }
     ]);
   };
@@ -158,7 +149,19 @@ const SiteSettingsManager: React.FC = () => {
 
       setIsEditing(false);
       setLogoFile(null);
-      setHeroFile(null);
+      // Show success notification
+      const successPopup = document.createElement('div');
+      successPopup.className = 'fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] animate-bounce-gentle';
+      successPopup.innerHTML = `
+        <div class="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+          <div class="bg-green-500 rounded-full p-1">
+            <svg class="h-4 w-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <span class="font-bold uppercase tracking-widest text-xs">Settings Saved Successfully!</span>
+        </div>
+      `;
+      document.body.appendChild(successPopup);
+      setTimeout(() => successPopup.remove(), 3000);
     } catch (error) {
       console.error('Error saving site settings:', error);
     }
@@ -389,49 +392,9 @@ const SiteSettingsManager: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Slide Content */}
-                  <div className="col-span-1 md:col-span-2 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={slide.title}
-                            onChange={(e) => handleSlideChange(index, 'title', e.target.value)}
-                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-black focus:border-black"
-                          />
-                        ) : (
-                          <p className="text-sm font-medium text-black">{slide.title}</p>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Subtitle</label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={slide.subtitle}
-                            onChange={(e) => handleSlideChange(index, 'subtitle', e.target.value)}
-                            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-black focus:border-black"
-                          />
-                        ) : (
-                          <p className="text-sm font-medium text-black">{slide.subtitle}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                      {isEditing ? (
-                        <textarea
-                          value={slide.description}
-                          onChange={(e) => handleSlideChange(index, 'description', e.target.value)}
-                          rows={2}
-                          className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-black focus:border-black"
-                        />
-                      ) : (
-                        <p className="text-sm text-gray-600">{slide.description}</p>
-                      )}
-                    </div>
+                  {/* Slide Content - Removed fields as requested */}
+                  <div className="col-span-1 md:col-span-2 flex items-center">
+                    <p className="text-sm text-gray-500 italic">This slide will display as a background image in the hero section.</p>
                   </div>
                 </div>
               </div>

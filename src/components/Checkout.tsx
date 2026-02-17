@@ -309,7 +309,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 }}
                 disabled={!isDetailsValid}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isDetailsValid
-                  ? 'border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md'
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.02] active:scale-95 animate-pulse-subtle hover:rotate-1 shadow-lg'
                   : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
                   }`}
               >
