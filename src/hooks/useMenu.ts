@@ -10,7 +10,7 @@ export const useMenu = () => {
   const fetchMenuItems = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // Fetch menu items with their variations and add-ons
       const { data: items, error: itemsError } = await supabase
         .from('menu_items')
@@ -28,11 +28,11 @@ export const useMenu = () => {
         const now = new Date();
         const discountStart = item.discount_start_date ? new Date(item.discount_start_date) : null;
         const discountEnd = item.discount_end_date ? new Date(item.discount_end_date) : null;
-        
-        const isDiscountActive = item.discount_active && 
-          (!discountStart || now >= discountStart) && 
+
+        const isDiscountActive = item.discount_active &&
+          (!discountStart || now >= discountStart) &&
           (!discountEnd || now <= discountEnd);
-        
+
         // Calculate effective price
         const effectivePrice = isDiscountActive && item.discount_price ? item.discount_price : item.base_price;
 
@@ -61,7 +61,8 @@ export const useMenu = () => {
             name: a.name,
             price: a.price,
             category: a.category
-          })) || []
+          })) || [],
+          flavors: item.flavors || []
         };
       }) || [];
 
@@ -91,7 +92,8 @@ export const useMenu = () => {
           discount_price: item.discountPrice || null,
           discount_start_date: item.discountStartDate || null,
           discount_end_date: item.discountEndDate || null,
-          discount_active: item.discountActive || false
+          discount_active: item.discountActive || false,
+          flavors: item.flavors || []
         })
         .select()
         .single();
@@ -153,7 +155,8 @@ export const useMenu = () => {
           discount_price: updates.discountPrice || null,
           discount_start_date: updates.discountStartDate || null,
           discount_end_date: updates.discountEndDate || null,
-          discount_active: updates.discountActive
+          discount_active: updates.discountActive,
+          flavors: updates.flavors
         })
         .eq('id', id);
 

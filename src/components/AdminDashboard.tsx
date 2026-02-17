@@ -205,6 +205,24 @@ const AdminDashboard: React.FC = () => {
     setFormData({ ...formData, variations: updatedVariations });
   };
 
+  const addFlavor = () => {
+    setFormData({
+      ...formData,
+      flavors: [...(formData.flavors || []), '']
+    });
+  };
+
+  const updateFlavor = (index: number, value: string) => {
+    const updatedFlavors = [...(formData.flavors || [])];
+    updatedFlavors[index] = value;
+    setFormData({ ...formData, flavors: updatedFlavors });
+  };
+
+  const removeFlavor = (index: number) => {
+    const updatedFlavors = (formData.flavors || []).filter((_, i) => i !== index);
+    setFormData({ ...formData, flavors: updatedFlavors });
+  };
+
   const addAddOn = () => {
     const newAddOn: AddOn = {
       id: `addon-${Date.now()}`,
@@ -532,6 +550,43 @@ const AdminDashboard: React.FC = () => {
                     onClick={() => removeVariation(index)}
                     className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
                     title="Remove Variation"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Flavors Section */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-playfair font-medium text-black">Choose Flavors (Optional)</h3>
+                <button
+                  onClick={addFlavor}
+                  className="flex items-center space-x-2 px-3 py-2 bg-cream-100 text-black rounded-lg hover:bg-cream-200 transition-colors duration-200"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Flavor</span>
+                </button>
+              </div>
+
+              {(!formData.flavors || formData.flavors.length === 0) && (
+                <p className="text-sm text-black italic">No flavors added yet.</p>
+              )}
+
+              {formData.flavors?.map((flavor, index) => (
+                <div key={index} className="flex items-center space-x-3 mb-3 p-4 bg-gray-50 rounded-lg">
+                  <input
+                    type="text"
+                    value={flavor}
+                    onChange={(e) => updateFlavor(index, e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Flavor name (e.g., Chocolate, Vanilla)"
+                  />
+                  <button
+                    onClick={() => removeFlavor(index)}
+                    className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors duration-200"
+                    title="Remove Flavor"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

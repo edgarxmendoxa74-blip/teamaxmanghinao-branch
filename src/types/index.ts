@@ -31,11 +31,13 @@ export interface MenuItem {
   // Computed effective price (calculated in the app)
   effectivePrice?: number;
   isOnDiscount?: boolean;
+  flavors?: string[];
 }
 
 export interface CartItem extends MenuItem {
   quantity: number;
   selectedVariation?: Variation;
+  selectedFlavor?: string;
   selectedAddOns?: AddOn[];
   totalPrice: number;
 }

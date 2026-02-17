@@ -5,7 +5,7 @@ import { MenuItem, Variation, AddOn } from '../types';
 
 interface MenuItemCardProps {
   item: MenuItem;
-  onAddToCart: (item: MenuItem, quantity?: number, variation?: Variation, addOns?: AddOn[]) => void;
+  onAddToCart: (item: MenuItem, quantity?: number, variation?: Variation, addOns?: AddOn[], flavor?: string) => void;
   quantity: number;
   onUpdateQuantity: (id: string, quantity: number) => void;
 }
@@ -21,23 +21,26 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const [selectedVariation, setSelectedVariation] = useState<Variation | undefined>(
     item.variations?.[0]
   );
+  const [selectedFlavor, setSelectedFlavor] = useState<string | undefined>(
+    item.flavors?.[0]
+  );
   const [selectedAddOns, setSelectedAddOns] = useState<AddOn[]>([]);
 
   const handleAddToCartClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!item.available) return;
 
-    if ((item.variations && item.variations.length > 1) || (item.addOns && item.addOns.length > 0)) {
+    if ((item.variations && item.variations.length > 1) || (item.addOns && item.addOns.length > 0) || (item.flavors && item.flavors.length > 0)) {
       setShowVariationModal(true);
     } else {
-      onAddToCart(item, localQuantity, item.variations?.[0]);
+      onAddToCart(item, localQuantity, item.variations?.[0], [], item.flavors?.[0]);
       setLocalQuantity(1); // Reset after adding
     }
   };
 
   const handleConfirmVariation = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddToCart(item, localQuantity, selectedVariation, selectedAddOns);
+    onAddToCart(item, localQuantity, selectedVariation, selectedAddOns, selectedFlavor);
     setShowVariationModal(false);
     setLocalQuantity(1);
     setSelectedAddOns([]);
@@ -115,6 +118,33 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
                 ))}
               </div>
             </div>
+
+          )}
+
+          {/* Flavors Section */}
+          {item.flavors && item.flavors.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Select Flavor</h4>
+                <span className="text-[10px] text-teamax-accent font-bold px-3 py-1 bg-teamax-accent/10 rounded-full">Optional</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {item.flavors.map((flavor) => (
+                  <label
+                    key={flavor}
+                    onClick={() => setSelectedFlavor(flavor)}
+                    className={`group flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${selectedFlavor === flavor
+                      ? 'border-black bg-gray-50 shadow-md'
+                      : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                  >
+                    <span className={`text-sm font-bold tracking-wider uppercase transition-colors ${selectedFlavor === flavor ? 'text-black' : 'text-gray-500 group-hover:text-black'}`}>{flavor}</span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${selectedFlavor === flavor ? 'border-black bg-black' : 'border-gray-300'}`}>
+                      {selectedFlavor === flavor && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* Add-ons Section */}
@@ -187,7 +217,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           </div>
         </div>
       </div>
-    </div>,
+    </div >,
     document.body
   );
 
@@ -230,7 +260,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
       <div className="p-3 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-2">
           <h4 className="text-sm sm:text-lg font-serif font-bold text-black leading-tight flex-1 sm:pr-2 mb-1 sm:mb-0 line-clamp-1">{item.name}</h4>
-          {((item.variations && item.variations.length > 0) || (item.addOns && item.addOns.length > 0)) && (
+          {((item.variations && item.variations.length > 0) || (item.addOns && item.addOns.length > 0) || (item.flavors && item.flavors.length > 0)) && (
             <div className="text-[10px] text-teamax-secondary border border-teamax-border px-2 py-0.5 rounded-full uppercase tracking-wider font-bold w-fit">
               Customizable
             </div>
