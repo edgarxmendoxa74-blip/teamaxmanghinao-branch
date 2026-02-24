@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* About Section */}
           <div>
-            <h3 className="text-xl font-serif font-bold text-teamax-primary mb-6">{siteSettings?.site_name || 'Tea Max Milk Tea Hub'}</h3>
+            <h3 className="text-xl font-serif font-bold text-teamax-primary mb-6">{siteSettings?.site_name || 'Tea Max Coffee Manghinao 1 Branch'}</h3>
             <p className="text-teamax-secondary leading-relaxed mb-6 max-w-xs text-sm">
               {siteSettings?.site_description || 'Crafting the perfect blend of tradition and flavor. From refreshing milk teas to aromatic coffees, we bring you the ultimate beverage experience.'}
             </p>
@@ -68,7 +68,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="border-t border-teamax-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-teamax-secondary/60 text-xs font-medium uppercase tracking-widest">
-            © {new Date().getFullYear()} {siteSettings?.site_name || 'Tea Max Milk Tea Hub'}
+            © {new Date().getFullYear()} {siteSettings?.site_name || 'Tea Max Coffee Manghinao 1 Branch'}
           </p>
           <div className="w-full md:w-auto">
             <EnvStatus />

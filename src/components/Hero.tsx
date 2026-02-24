@@ -48,7 +48,7 @@ const Hero: React.FC = () => {
         <div className="w-full md:w-1/2 flex items-center justify-center px-8 py-10 md:py-0 z-20 order-2 md:order-1 bg-teamax-dark">
           <div className="max-w-xl text-left">
             <h1 className="text-3xl md:text-5xl font-serif font-bold mb-4 animate-fade-in tracking-tight text-teamax-primary leading-tight">
-              {siteSettings?.site_name || 'Tea Max Milk Tea Hub'}
+              {siteSettings?.site_name || 'Tea Max Coffee Manghinao 1 Branch'}
               <span className="block mt-2">
                 {siteSettings?.site_tagline || 'Premium Quality Drinks'}
               </span>

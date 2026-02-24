@@ -44,27 +44,27 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     setStep('payment');
   };
 
-
-
   const generateOrderDetails = () => {
-    const timeInfo = serviceType === 'pickup'
+    const timeInfo = (serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout')
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
 
+    const serviceLabel = serviceType === 'dine-in' ? 'Dine-in' :
+      serviceType === 'takeout' ? 'Take Out' :
+        serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
+
     return `
-🛒 ${siteSettings?.site_name || "Tea Max Milk Tea Hub"} ORDER
+${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"} - ORDER
 
-👤 Customer: ${customerName}
-📞 Contact: ${contactNumber}
-📍 Service: ${serviceType.charAt(0).toUpperCase() + serviceType.slice(1)}
-${serviceType === 'delivery' ? `🏠 Address: ${address}${landmark ? `\n🗺️ Landmark: ${landmark}` : ''}` : ''}
-${serviceType === 'pickup' ? `⏰ Pickup Time: ${timeInfo}` : ''}
+Customer: ${customerName}
+Contact: ${contactNumber}
+Service: ${serviceLabel}
+${serviceType === 'delivery' ? `Address: ${address}${landmark ? `\nLandmark: ${landmark}` : ''}` : ''}
+${(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') ? `Time: ${timeInfo}` : ''}
 
-
-
-📋 ORDER DETAILS:
+ORDER DETAILS:
 ${cartItems.map(item => {
-      let itemDetails = `• ${item.name}`;
+      let itemDetails = `- ${item.name}`;
       if (item.selectedVariation) {
         itemDetails += ` (${item.selectedVariation.name})`;
       }
@@ -78,21 +78,21 @@ ${cartItems.map(item => {
             : addOn.name
         ).join(', ')}`;
       }
-      itemDetails += ` x${item.quantity} - ₱${item.totalPrice * item.quantity}`;
+      itemDetails += ` x${item.quantity} - PHP ${item.totalPrice * item.quantity}`;
       return itemDetails;
     }).join('\n')}
 
-💰 TOTAL: ₱${totalPrice}
-${serviceType === 'delivery' ? `🛵 DELIVERY FEE:` : ''}
-💳 Payment: ${selectedPaymentMethod?.name || paymentMethod}
+TOTAL: PHP ${totalPrice}
+${serviceType === 'delivery' ? `Delivery Fee: To be added by rider` : ''}
+Payment: ${selectedPaymentMethod?.name || paymentMethod}
 ${paymentMethod !== 'cod'
-        ? '📸 Payment Screenshot: Please attach your payment receipt screenshot'
-        : '💵 Payment Status: Cash on Delivery'
+        ? `Payment Proof: Please attach receipt${referenceNumber ? `\nReference #: ${referenceNumber}` : ''}`
+        : 'Payment Status: Cash on Delivery'
       }
 
-${notes ? `📝 Notes: ${notes}` : ''}
+${notes ? `Notes: ${notes}` : ''}
 
-Please confirm this order to proceed. Thank you for choosing ${siteSettings?.site_name || "Tea Max Milk Tea Hub"}! 🍽️
+Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"}!
     `.trim();
   };
 
@@ -110,18 +110,15 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
   const handlePlaceOrder = () => {
     const orderDetails = generateOrderDetails();
     const encodedMessage = encodeURIComponent(orderDetails);
-    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'teamaxmilkteahub';
+    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || '61577909563825';
     const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
 
-    window.open(messengerUrl, '_blank');
+    window.location.href = messengerUrl;
   };
-
-
-
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
     (serviceType !== 'delivery' || address.trim()) &&
-    (serviceType !== 'pickup' || (pickupTime !== 'custom' || customTime.trim()));
+    (serviceType === 'delivery' || (pickupTime !== 'custom' || customTime.trim()));
 
   if (step === 'details') {
     return (
@@ -159,9 +156,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                         Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
                       </p>
                     )}
-                    <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
+                    <p className="text-sm text-gray-600">PHP {item.totalPrice} x {item.quantity}</p>
                   </div>
-                  <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+                  <span className="font-semibold text-black">PHP {item.totalPrice * item.quantity}</span>
                 </div>
               ))}
             </div>
@@ -169,7 +166,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
                 <span>Total:</span>
-                <span>₱{totalPrice}</span>
+                <span>PHP {totalPrice}</span>
               </div>
             </div>
           </div>
@@ -207,10 +204,12 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
               {/* Service Type */}
               <div>
                 <label className="block text-sm font-medium text-black mb-3">Service Type *</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { value: 'pickup', label: 'Pickup', icon: '🚶' },
-                    { value: 'delivery', label: 'Delivery', icon: '🛵' }
+                    { value: 'dine-in', label: 'Dine-in' },
+                    { value: 'takeout', label: 'Take Out' },
+                    { value: 'pickup', label: 'Pickup' },
+                    { value: 'delivery', label: 'Delivery' }
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -221,19 +220,18 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                         : 'border-gray-200 bg-white text-gray-400 hover:border-black/50'
                         }`}
                     >
-                      <div className="text-2xl mb-1">{option.icon}</div>
                       <div className="text-sm font-medium">{option.label}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-
-
-              {/* Pickup Time Selection */}
-              {serviceType === 'pickup' && (
+              {/* Time Selection for non-delivery */}
+              {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && (
                 <div>
-                  <label className="block text-sm font-medium text-black mb-3">Pickup Time *</label>
+                  <label className="block text-sm font-medium text-black mb-3">
+                    {serviceType === 'dine-in' ? 'Arrival Time *' : 'Pickup Time *'}
+                  </label>
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       {[
@@ -319,7 +317,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                 }}
                 disabled={!isDetailsValid}
                 className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isDetailsValid
-                  ? 'border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.02] active:scale-95 animate-pulse-subtle hover:rotate-1 shadow-lg'
+                  ? 'border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.02] active:scale-95 shadow-lg'
                   : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
                   }`}
               >
@@ -331,7 +329,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   {!customerName.trim() && 'Name is required. '}
                   {!contactNumber.trim() && 'Contact is required. '}
                   {serviceType === 'delivery' && !address.trim() && 'Address is required. '}
-                  {serviceType === 'pickup' && pickupTime === 'custom' && !customTime.trim() && 'Time is required. '}
+                  {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && pickupTime === 'custom' && !customTime.trim() && 'Time is required. '}
                 </p>
               )}
             </form>
@@ -376,9 +374,6 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   }`}
               >
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-transform duration-300 ${paymentMethod === method.id ? 'bg-gray-100 scale-110' : 'bg-gray-50 group-hover:scale-110'}`}>
-                    {method.id === 'cod' ? '💵' : '💳'}
-                  </div>
                   <div className="text-left">
                     <span className="font-semibold block">{method.name}</span>
                     <span className="text-xs text-gray-500">
@@ -387,7 +382,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   </div>
                 </div>
                 {paymentMethod === method.id && (
-                  <CheckCircle2 className="h-6 w-6 text-black animate-scale-in animate-pulse-subtle" />
+                  <CheckCircle2 className="h-6 w-6 text-black" />
                 )}
               </button>
             ))}
@@ -397,7 +392,6 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
           {selectedPaymentMethod && (
             <div className="bg-white rounded-xl p-6 mb-6 border-2 border-dashed border-gray-200 hover:border-black transition-colors duration-300">
               <h3 className="font-medium text-black mb-4 flex items-center">
-                <span className="w-2 h-2 bg-black rounded-full mr-2"></span>
                 Payment Details
               </h3>
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -416,7 +410,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                     </div>
                   )}
                   <div className="pt-2">
-                    <p className="text-2xl font-bold text-black">₱{totalPrice}</p>
+                    <p className="text-2xl font-bold text-black">PHP {totalPrice}</p>
                     <p className="text-[10px] text-gray-400">Exact amount to pay</p>
                   </div>
                 </div>
@@ -478,7 +472,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Total:</span>
-                    <span className="font-bold text-black">₱{totalPrice}</span>
+                    <span className="font-bold text-black">PHP {totalPrice}</span>
                   </div>
                 </div>
                 <button
@@ -493,15 +487,27 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
 
           {/* Reference Number */}
           {paymentMethod !== 'cod' ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-black mb-2">📸 Payment Proof Required</h4>
-              <p className="text-sm text-gray-700">
-                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
-              </p>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+              <div>
+                <h4 className="font-medium text-black mb-1">Payment Proof Required</h4>
+                <p className="text-sm text-gray-700">
+                  After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Reference Number (Optional)</label>
+                <input
+                  type="text"
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 bg-white"
+                  placeholder="Enter Reference #"
+                />
+              </div>
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-black mb-2">💵 Cash on Delivery</h4>
+              <h4 className="font-medium text-black mb-2">Cash on Delivery</h4>
               <p className="text-sm text-gray-700">
                 Please prepare exact amount. You will pay when you {serviceType === 'pickup' ? 'pick up' : 'receive'} your order.
               </p>
@@ -543,12 +549,11 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                   {landmark && <p className="text-sm text-gray-600">Landmark: {landmark}</p>}
                 </>
               )}
-              {serviceType === 'pickup' && (
+              {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && (
                 <p className="text-sm text-gray-600">
-                  Pickup Time: {pickupTime === 'custom' ? customTime : `${pickupTime} minutes`}
+                  {serviceType === 'dine-in' ? 'Arrival' : 'Pickup'} Time: {pickupTime === 'custom' ? customTime : `${pickupTime} minutes`}
                 </p>
               )}
-
             </div>
 
             {cartItems.map((item) => (
@@ -570,9 +575,9 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
                       ).join(', ')}
                     </p>
                   )}
-                  <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
+                  <p className="text-sm text-gray-600">PHP {item.totalPrice} x {item.quantity}</p>
                 </div>
-                <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+                <span className="font-semibold text-black">PHP {item.totalPrice * item.quantity}</span>
               </div>
             ))}
           </div>
@@ -580,7 +585,7 @@ Please confirm this order to proceed. Thank you for choosing ${siteSettings?.sit
           <div className="border-t border-gray-200 pt-4 mb-6">
             <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
               <span>Total:</span>
-              <span>₱{totalPrice}</span>
+              <span>PHP {totalPrice}</span>
             </div>
           </div>
 

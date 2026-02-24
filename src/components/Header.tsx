@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
             <div className="relative">
               <img
                 src={siteSettings?.site_logo || "/teamax-logo.png"}
-                alt={siteSettings?.site_name || "Tea Max Milk Tea Hub"}
+                alt={siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"}
                 className="w-12 h-12 rounded-full object-cover border border-teamax-border shadow-sm group-hover:scale-105 transition-transform duration-300"
                 onError={(e) => {
                   e.currentTarget.src = "/teamax-logo.png";
@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ cartItemsCount, onCartClick }) => {
                 {loading ? (
                   <div className="w-24 h-6 bg-gray-100 rounded animate-pulse" />
                 ) : (
-                  siteSettings?.site_name || "Tea Max"
+                  siteSettings?.site_name || "Tea Max Coffee"
                 )}
               </h1>
               <span className="text-xs text-teamax-secondary font-sans uppercase tracking-widest font-semibold tracking-tighter">

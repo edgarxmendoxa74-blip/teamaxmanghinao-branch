@@ -21,7 +21,7 @@ export const useSiteSettings = () => {
 
       // Transform the data into a more usable format
       const settings: SiteSettings = {
-        site_name: data.find(s => s.id === 'site_name')?.value || 'Tea Max Milk Tea Hub',
+        site_name: data.find(s => s.id === 'site_name')?.value || 'Tea Max Coffee Manghinao 1 Branch',
         site_logo: data.find(s => s.id === 'site_logo')?.value || '',
         site_description: data.find(s => s.id === 'site_description')?.value || '',
         currency: data.find(s => s.id === 'currency')?.value || '₱',
@@ -29,12 +29,12 @@ export const useSiteSettings = () => {
         hero_image: data.find(s => s.id === 'hero_image')?.value || 'https://images.unsplash.com/photo-1544787210-22dbdc1763f6?q=80&w=2070&auto=format&fit=crop',
         hero_title: data.find(s => s.id === 'hero_title')?.value || 'Pure Milk Tea &',
         hero_subtitle: data.find(s => s.id === 'hero_subtitle')?.value || 'Finest Coffee',
-        hero_description: data.find(s => s.id === 'hero_description')?.value || 'Simple ingredients, exceptional taste. Discover our curated selection of handcrafted beverages at Tea Max Milk Tea Hub.',
+        hero_description: data.find(s => s.id === 'hero_description')?.value || 'Simple ingredients, exceptional taste. Discover our curated selection of handcrafted beverages at Tea Max Coffee Manghinao 1 Branch.',
         store_hours: data.find(s => s.id === 'store_hours')?.value || '06:00 AM - 10:00 PM',
         contact_number: data.find(s => s.id === 'contact_number')?.value || '0945 210 6254',
         address: data.find(s => s.id === 'address')?.value || 'Purok 3 Barangay Trenchera, Tayug Pangasinan',
-        facebook_url: data.find(s => s.id === 'facebook_url')?.value || 'https://www.facebook.com/teamaxmilkteahub',
-        facebook_handle: data.find(s => s.id === 'facebook_handle')?.value || '@teamaxmilkteahub',
+        facebook_url: data.find(s => s.id === 'facebook_url')?.value || 'https://www.facebook.com/61577909563825',
+        facebook_handle: data.find(s => s.id === 'facebook_handle')?.value || '61577909563825',
         site_tagline: data.find(s => s.id === 'site_tagline')?.value || 'Milk Tea Hub',
         hero_slides: (() => {
           try {
