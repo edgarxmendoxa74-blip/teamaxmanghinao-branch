@@ -97,7 +97,7 @@ INSERT INTO site_settings (id, value, type, description) VALUES
   ('site_description', 'Welcome to Tea Max Coffee Manghinao 1 Branch - Your perfect coffee destination', 'text', 'Short description of the cafe'),
   ('currency', 'PHP', 'text', 'Currency symbol for prices'),
   ('currency_code', 'PHP', 'text', 'Currency code for payments'),
-  ('facebook_url', 'https://www.facebook.com/61577909563825', 'text', 'Facebook Page URL'),
+  ('facebook_url', 'https://www.facebook.com/profile.php?id=61577909563825', 'text', 'Facebook Page URL'),
   ('facebook_handle', '61577909563825', 'text', 'Facebook Page ID or Handle')
 ON CONFLICT (id) DO NOTHING;
 

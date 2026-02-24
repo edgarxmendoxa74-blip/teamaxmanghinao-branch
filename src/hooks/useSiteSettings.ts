@@ -33,7 +33,7 @@ export const useSiteSettings = () => {
         store_hours: data.find(s => s.id === 'store_hours')?.value || '06:00 AM - 10:00 PM',
         contact_number: data.find(s => s.id === 'contact_number')?.value || '0945 210 6254',
         address: data.find(s => s.id === 'address')?.value || 'Purok 3 Barangay Trenchera, Tayug Pangasinan',
-        facebook_url: data.find(s => s.id === 'facebook_url')?.value || 'https://www.facebook.com/61577909563825',
+        facebook_url: data.find(s => s.id === 'facebook_url')?.value || 'https://www.facebook.com/profile.php?id=61577909563825',
         facebook_handle: data.find(s => s.id === 'facebook_handle')?.value || '61577909563825',
         site_tagline: data.find(s => s.id === 'site_tagline')?.value || 'Milk Tea Hub',
         hero_slides: (() => {

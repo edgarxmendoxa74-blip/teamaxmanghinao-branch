@@ -53,7 +53,7 @@ const Footer: React.FC = () => {
               <div className="flex items-start gap-4">
                 <Facebook className="h-4 w-4 text-teamax-accent flex-shrink-0 mt-0.5" />
                 <a
-                  href={siteSettings?.facebook_url || "https://www.facebook.com/61577909563825"}
+                  href={siteSettings?.facebook_url || "https://www.facebook.com/profile.php?id=61577909563825"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-teamax-accent transition-colors font-medium"
