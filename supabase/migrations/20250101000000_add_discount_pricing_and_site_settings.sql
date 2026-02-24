@@ -96,7 +96,9 @@ INSERT INTO site_settings (id, value, type, description) VALUES
   ('site_logo', 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop', 'image', 'The logo image URL for the site'),
   ('site_description', 'Welcome to Tea Max Coffee Manghinao 1 Branch - Your perfect coffee destination', 'text', 'Short description of the cafe'),
   ('currency', 'PHP', 'text', 'Currency symbol for prices'),
-  ('currency_code', 'PHP', 'text', 'Currency code for payments')
+  ('currency_code', 'PHP', 'text', 'Currency code for payments'),
+  ('facebook_url', 'https://www.facebook.com/61577909563825', 'text', 'Facebook Page URL'),
+  ('facebook_handle', '61577909563825', 'text', 'Facebook Page ID or Handle')
 ON CONFLICT (id) DO NOTHING;
 
 -- Create function to check if discount is active
