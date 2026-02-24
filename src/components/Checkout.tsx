@@ -45,13 +45,11 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   };
 
   const generateOrderDetails = () => {
-    const timeInfo = (serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout')
+    const timeInfo = serviceType === 'pickup'
       ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
       : '';
 
-    const serviceLabel = serviceType === 'dine-in' ? 'Dine-in' :
-      serviceType === 'takeout' ? 'Take Out' :
-        serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
+    const serviceLabel = serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
 
     return `
 ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"} - ORDER
@@ -60,11 +58,12 @@ Customer: ${customerName}
 Contact: ${contactNumber}
 Service: ${serviceLabel}
 ${serviceType === 'delivery' ? `Address: ${address}${landmark ? `\nLandmark: ${landmark}` : ''}` : ''}
-${(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') ? `Time: ${timeInfo}` : ''}
+${serviceType === 'pickup' ? `Time: ${timeInfo}` : ''}
 
 ORDER DETAILS:
+
 ${cartItems.map(item => {
-      let itemDetails = `- ${item.name}`;
+      let itemDetails = `${item.quantity} x ${item.name}`;
       if (item.selectedVariation) {
         itemDetails += ` (${item.selectedVariation.name})`;
       }
@@ -78,11 +77,12 @@ ${cartItems.map(item => {
             : addOn.name
         ).join(', ')}`;
       }
-      itemDetails += ` x${item.quantity} - PHP ${item.totalPrice * item.quantity}`;
+      itemDetails += ` \u20B1${item.totalPrice * item.quantity}`;
       return itemDetails;
-    }).join('\n')}
+    }).join('\n\n')}
 
-TOTAL: PHP ${totalPrice}
+
+TOTAL: \u20B1${totalPrice}
 ${serviceType === 'delivery' ? `Delivery Fee: To be added by rider` : ''}
 Payment: ${selectedPaymentMethod?.name || paymentMethod}
 ${paymentMethod !== 'cod'
@@ -204,10 +204,8 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
               {/* Service Type */}
               <div>
                 <label className="block text-sm font-medium text-black mb-3">Service Type *</label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'dine-in', label: 'Dine-in' },
-                    { value: 'takeout', label: 'Take Out' },
                     { value: 'pickup', label: 'Pickup' },
                     { value: 'delivery', label: 'Delivery' }
                   ].map((option) => (
@@ -227,10 +225,10 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
               </div>
 
               {/* Time Selection for non-delivery */}
-              {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && (
+              {serviceType === 'pickup' && (
                 <div>
                   <label className="block text-sm font-medium text-black mb-3">
-                    {serviceType === 'dine-in' ? 'Arrival Time *' : 'Pickup Time *'}
+                    Pickup Time *
                   </label>
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
@@ -329,7 +327,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                   {!customerName.trim() && 'Name is required. '}
                   {!contactNumber.trim() && 'Contact is required. '}
                   {serviceType === 'delivery' && !address.trim() && 'Address is required. '}
-                  {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && pickupTime === 'custom' && !customTime.trim() && 'Time is required. '}
+                  {serviceType === 'pickup' && pickupTime === 'custom' && !customTime.trim() && 'Time is required. '}
                 </p>
               )}
             </form>
@@ -549,9 +547,9 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                   {landmark && <p className="text-sm text-gray-600">Landmark: {landmark}</p>}
                 </>
               )}
-              {(serviceType === 'pickup' || serviceType === 'dine-in' || serviceType === 'takeout') && (
+              {serviceType === 'pickup' && (
                 <p className="text-sm text-gray-600">
-                  {serviceType === 'dine-in' ? 'Arrival' : 'Pickup'} Time: {pickupTime === 'custom' ? customTime : `${pickupTime} minutes`}
+                  Pickup Time: {pickupTime === 'custom' ? customTime : `${pickupTime} minutes`}
                 </p>
               )}
             </div>

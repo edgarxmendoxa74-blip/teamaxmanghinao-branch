@@ -56,7 +56,7 @@ export interface OrderData {
 }
 
 export type PaymentMethod = 'gcash' | 'maya' | 'bank-transfer' | 'cod';
-export type ServiceType = 'pickup' | 'delivery' | 'dine-in' | 'takeout';
+export type ServiceType = 'pickup' | 'delivery';
 
 // Site Settings Types
 export interface SiteSetting {
