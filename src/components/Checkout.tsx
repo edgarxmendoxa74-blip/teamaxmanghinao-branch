@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, Copy, Check, ShoppingBag, Truck, Banknote, Smartphone } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -206,18 +206,19 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                 <label className="block text-sm font-medium text-black mb-3">Service Type *</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { value: 'pickup', label: 'Pickup' },
-                    { value: 'delivery', label: 'Delivery' }
+                    { value: 'pickup', label: 'Pickup', icon: ShoppingBag },
+                    { value: 'delivery', label: 'Delivery', icon: Truck }
                   ].map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setServiceType(option.value as ServiceType)}
-                      className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center ${serviceType === option.value
+                      className={`p-4 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center gap-1.5 ${serviceType === option.value
                         ? 'border-black bg-white text-black shadow-md'
                         : 'border-gray-200 bg-white text-gray-400 hover:border-black/50'
                         }`}
                     >
+                      <option.icon className="h-5 w-5" />
                       <div className="text-sm font-medium">{option.label}</div>
                     </button>
                   ))}
@@ -372,6 +373,9 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                   }`}
               >
                 <div className="flex items-center space-x-4">
+                  <div className={`p-2 rounded-lg ${paymentMethod === method.id ? 'bg-black text-white' : 'bg-gray-100 text-gray-400'}`}>
+                    {method.id === 'cod' ? <Banknote className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
+                  </div>
                   <div className="text-left">
                     <span className="font-semibold block">{method.name}</span>
                     <span className="text-xs text-gray-500">
@@ -505,7 +509,10 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-black mb-2">Cash on Delivery</h4>
+              <h4 className="font-medium text-black mb-2 flex items-center">
+                <Banknote className="h-5 w-5 mr-2 text-teamax-accent" />
+                Cash on Delivery
+              </h4>
               <p className="text-sm text-gray-700">
                 Please prepare exact amount. You will pay when you {serviceType === 'pickup' ? 'pick up' : 'receive'} your order.
               </p>
