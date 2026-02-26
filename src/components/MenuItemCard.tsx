@@ -24,9 +24,22 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
   const [selectedFlavor, setSelectedFlavor] = useState<string | undefined>(
     item.flavors?.[0]
   );
-  const [selectedFlavor2, setSelectedFlavor2] = useState<string | undefined>(
-    item.flavors?.[0]
+  const [selectedTwoFlavors, setSelectedTwoFlavors] = useState<string[]>(
+    item.flavors && item.flavors.length > 0 ? [item.flavors[0]] : []
   );
+
+  const toggleTwoFlavor = (flavor: string) => {
+    if (selectedTwoFlavors.includes(flavor)) {
+      if (selectedTwoFlavors.length === 1) return;
+      setSelectedTwoFlavors(selectedTwoFlavors.filter(f => f !== flavor));
+    } else {
+      if (selectedTwoFlavors.length >= 2) {
+        setSelectedTwoFlavors([selectedTwoFlavors[1], flavor]);
+      } else {
+        setSelectedTwoFlavors([...selectedTwoFlavors, flavor]);
+      }
+    }
+  };
   const [selectedAddOns, setSelectedAddOns] = useState<AddOn[]>([]);
 
   const handleAddToCartClick = (e: React.MouseEvent) => {
@@ -45,12 +58,12 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
     e.stopPropagation();
 
     // Check if we need to combine flavors for 12pcs wings
-    const isTwoFlavorItem = item.name.toLowerCase().includes('wings') &&
-      selectedVariation?.name.toLowerCase().includes('12');
+    const isTwoFlavorItem = (item.name.toLowerCase().includes('wings') || item.category === 'chicken-wings') &&
+      (item.name.toLowerCase().includes('12') || selectedVariation?.name.toLowerCase().includes('12'));
 
     let finalFlavor = selectedFlavor;
-    if (isTwoFlavorItem && selectedFlavor && selectedFlavor2) {
-      finalFlavor = `${selectedFlavor} + ${selectedFlavor2}`;
+    if (isTwoFlavorItem && selectedTwoFlavors.length > 0) {
+      finalFlavor = selectedTwoFlavors.join(' + ');
     }
 
     onAddToCart(item, localQuantity, selectedVariation, selectedAddOns, finalFlavor);
@@ -137,53 +150,31 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({
           {/* Flavors Section */}
           {item.flavors && item.flavors.length > 0 && (
             <div className="mb-8">
-              {item.name.toLowerCase().includes('wings') && selectedVariation?.name.toLowerCase().includes('12') ? (
+              {(item.name.toLowerCase().includes('wings') || item.category === 'chicken-wings') && (item.name.toLowerCase().includes('12') || selectedVariation?.name.toLowerCase().includes('12')) ? (
                 // Logic for 2 flavors (12pcs Wings)
-                <div className="space-y-6">
-                  {/* First Choice */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">1st Choice of Flavor</h4>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      {item.flavors.map((flavor) => (
-                        <label
-                          key={`f1-${flavor}`}
-                          onClick={() => setSelectedFlavor(flavor)}
-                          className={`group flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${selectedFlavor === flavor
-                            ? 'border-black bg-gray-50 shadow-md'
-                            : 'border-gray-100 bg-white hover:border-gray-200'}`}
-                        >
-                          <span className={`text-sm font-bold tracking-wider uppercase transition-colors ${selectedFlavor === flavor ? 'text-black' : 'text-gray-500 group-hover:text-black'}`}>{flavor}</span>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${selectedFlavor === flavor ? 'border-black bg-black' : 'border-gray-300'}`}>
-                            {selectedFlavor === flavor && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                          </div>
-                        </label>
-                      ))}
-                    </div>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">Select up to 2 Flavors</h4>
+                    <span className="text-[10px] text-teamax-accent font-bold px-3 py-1 bg-teamax-accent/10 rounded-full">{selectedTwoFlavors.length}/2 Selected</span>
                   </div>
-
-                  {/* Second Choice */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em]">2nd Choice of Flavor</h4>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      {item.flavors.map((flavor) => (
+                  <div className="grid grid-cols-2 gap-3">
+                    {item.flavors.map((flavor) => {
+                      const isSelected = selectedTwoFlavors.includes(flavor);
+                      return (
                         <label
-                          key={`f2-${flavor}`}
-                          onClick={() => setSelectedFlavor2(flavor)}
-                          className={`group flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${selectedFlavor2 === flavor
+                          key={`tf-${flavor}`}
+                          onClick={() => toggleTwoFlavor(flavor)}
+                          className={`group flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all duration-300 border-2 ${isSelected
                             ? 'border-black bg-gray-50 shadow-md'
                             : 'border-gray-100 bg-white hover:border-gray-200'}`}
                         >
-                          <span className={`text-sm font-bold tracking-wider uppercase transition-colors ${selectedFlavor2 === flavor ? 'text-black' : 'text-gray-500 group-hover:text-black'}`}>{flavor}</span>
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${selectedFlavor2 === flavor ? 'border-black bg-black' : 'border-gray-300'}`}>
-                            {selectedFlavor2 === flavor && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                          <span className={`text-sm font-bold tracking-wider uppercase transition-colors ${isSelected ? 'text-black' : 'text-gray-500 group-hover:text-black'}`}>{flavor}</span>
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${isSelected ? 'border-black bg-black' : 'border-gray-300'}`}>
+                            {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
                           </div>
                         </label>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
