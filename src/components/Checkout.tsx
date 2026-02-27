@@ -22,7 +22,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [pickupTime, setPickupTime] = useState('5-10');
   const [customTime, setCustomTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('gcash');
-  const [referenceNumber, setReferenceNumber] = useState('');
+
   const [notes, setNotes] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -86,7 +86,7 @@ TOTAL: \u20B1${totalPrice}
 ${serviceType === 'delivery' ? `Delivery Fee: To be added by rider` : ''}
 Payment: ${selectedPaymentMethod?.name || paymentMethod}
 ${paymentMethod !== 'cod'
-        ? `Payment Proof: Please attach receipt${referenceNumber ? `\nReference #: ${referenceNumber}` : ''}`
+        ? `Payment Proof: Please attach receipt`
         : 'Payment Status: Cash on Delivery'
       }
 
@@ -378,9 +378,9 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                   </div>
                   <div className="text-left">
                     <span className="font-semibold block">{method.name}</span>
-                    <span className="text-xs text-gray-500">
-                      {method.id === 'cod' ? 'Pay when you receive' : 'Pay via digital transfer'}
-                    </span>
+                    {method.id === 'cod' && (
+                      <span className="text-xs text-gray-500">Pay when you receive</span>
+                    )}
                   </div>
                 </div>
                 {paymentMethod === method.id && (
@@ -438,7 +438,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                       <span className="text-[10px] font-bold uppercase">Click to View</span>
                     </div>
                   </button>
-                  <p className="text-[10px] text-gray-400 text-center mt-2 font-medium uppercase tracking-widest">Scan to Pay</p>
+
                 </div>
               </div>
             </div>
@@ -487,25 +487,13 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             </div>
           )}
 
-          {/* Reference Number */}
+          {/* Payment Proof Notice */}
           {paymentMethod !== 'cod' ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
-              <div>
-                <h4 className="font-medium text-black mb-1">Payment Proof Required</h4>
-                <p className="text-sm text-gray-700">
-                  After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
-                </p>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Reference Number (Optional)</label>
-                <input
-                  type="text"
-                  value={referenceNumber}
-                  onChange={(e) => setReferenceNumber(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 bg-white"
-                  placeholder="Enter Reference #"
-                />
-              </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="font-medium text-black mb-1">Payment Proof Required</h4>
+              <p className="text-sm text-gray-700">
+                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
+              </p>
             </div>
           ) : (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
