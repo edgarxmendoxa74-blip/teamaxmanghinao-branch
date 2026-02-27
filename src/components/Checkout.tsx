@@ -86,7 +86,7 @@ TOTAL: \u20B1${totalPrice}
 ${serviceType === 'delivery' ? `Delivery Fee: To be added by rider` : ''}
 Payment: ${selectedPaymentMethod?.name || paymentMethod}
 ${paymentMethod !== 'cod'
-        ? `Payment Proof: Please attach receipt`
+        ? ``
         : 'Payment Status: Cash on Delivery'
       }
 
@@ -487,15 +487,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             </div>
           )}
 
-          {/* Payment Proof Notice */}
-          {paymentMethod !== 'cod' ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h4 className="font-medium text-black mb-1">Payment Proof Required</h4>
-              <p className="text-sm text-gray-700">
-                After making your payment, please take a screenshot of your payment receipt and attach it when you send your order via Messenger.
-              </p>
-            </div>
-          ) : (
+          {paymentMethod === 'cod' && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <h4 className="font-medium text-black mb-2 flex items-center">
                 <Banknote className="h-5 w-5 mr-2 text-teamax-accent" />
