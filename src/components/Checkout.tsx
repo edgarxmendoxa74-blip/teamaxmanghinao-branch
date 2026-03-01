@@ -10,6 +10,12 @@ interface CheckoutProps {
   onBack: () => void;
 }
 
+const isIOS = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { siteSettings } = useSiteSettings();
   const { paymentMethods } = usePaymentMethods();
@@ -111,26 +117,45 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
   const handlePlaceOrder = async () => {
     const orderDetails = generateOrderDetails();
 
-    // Copy to clipboard first as a fallback for iOS/mobile issues
+    // Copy to clipboard - critical for iOS where text param doesn't work
     try {
       await navigator.clipboard.writeText(orderDetails);
       setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      setTimeout(() => setIsCopied(false), 3000);
     } catch (err) {
-      console.error('Failed to copy text: ', err);
+      // Fallback for older browsers / restricted contexts
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = orderDetails;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 3000);
+      } catch (fallbackErr) {
+        console.error('Failed to copy text: ', fallbackErr);
+      }
     }
 
-    const encodedMessage = encodeURIComponent(orderDetails);
     const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
-    const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
 
-    // Show redirection modal
+    // Show redirection modal first
     setShowRedirectModal(true);
 
-    // Short delay before redirection to ensure user sees the modal/instructions
-    setTimeout(() => {
-      window.location.href = messengerUrl;
-    }, 2000);
+    // For non-iOS devices, auto-redirect with text param after a short delay
+    if (!isIOS()) {
+      const encodedMessage = encodeURIComponent(orderDetails);
+      const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
+      setTimeout(() => {
+        window.location.href = messengerUrl;
+      }, 2000);
+    }
+    // For iOS: user manually taps "Go to Messenger" button in the modal
   };
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
@@ -615,33 +640,92 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingBag className="h-8 w-8 animate-bounce" />
             </div>
-            <h3 className="text-2xl font-bold text-black mb-2">Redirecting...</h3>
-            <p className="text-gray-600 mb-6">
-              We're opening Messenger for you to send your order.
+            <h3 className="text-2xl font-bold text-black mb-2">
+              {isIOS() ? 'Almost There!' : 'Redirecting...'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {isIOS()
+                ? 'Your order details have been copied. Tap the button below to open Messenger.'
+                : "We're opening Messenger for you to send your order."
+              }
             </p>
 
-            <div className="bg-blue-50 p-4 rounded-xl mb-6">
-              <p className="text-sm font-medium text-blue-800 flex items-center justify-center gap-2">
+            <div className="bg-green-50 p-4 rounded-xl mb-4">
+              <p className="text-sm font-medium text-green-800 flex items-center justify-center gap-2">
                 <CheckCircle2 className="h-4 w-4" />
                 Order Details Copied!
               </p>
-              <p className="text-xs text-blue-600 mt-1">
-                If the message field is empty, just <b>long-press and paste</b> in Messenger.
-              </p>
             </div>
+
+            {isIOS() && (
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
+                <p className="text-sm font-bold text-amber-800 mb-1">📋 iPhone Instructions:</p>
+                <p className="text-xs text-amber-700">
+                  1. Tap <b>"Open Messenger"</b> below<br />
+                  2. In the message box, <b>long-press</b> and tap <b>"Paste"</b><br />
+                  3. Tap <b>Send</b> to place your order
+                </p>
+              </div>
+            )}
+
+            {!isIOS() && (
+              <div className="bg-blue-50 p-3 rounded-xl mb-4">
+                <p className="text-xs text-blue-600">
+                  If the message field is empty, just <b>long-press and paste</b> in Messenger.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  const orderDetails = generateOrderDetails();
-                  const encodedMessage = encodeURIComponent(orderDetails);
                   const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
-                  window.location.href = `https://m.me/${fbHandle}?text=${encodedMessage}`;
+                  if (isIOS()) {
+                    // iOS: use clean m.me link without text param for reliability
+                    window.open(`https://m.me/${fbHandle}`, '_blank');
+                  } else {
+                    const orderDetails = generateOrderDetails();
+                    const encodedMessage = encodeURIComponent(orderDetails);
+                    window.location.href = `https://m.me/${fbHandle}?text=${encodedMessage}`;
+                  }
                 }}
-                className="w-full py-3 bg-black text-white rounded-xl font-bold transition-transform active:scale-95"
+                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2"
               >
-                Go to Messenger Now
+                {isIOS() ? '💬 Open Messenger' : 'Go to Messenger Now'}
               </button>
+
+              {isIOS() && (
+                <button
+                  onClick={async () => {
+                    const orderDetails = generateOrderDetails();
+                    try {
+                      await navigator.clipboard.writeText(orderDetails);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    } catch (err) {
+                      const textArea = document.createElement('textarea');
+                      textArea.value = orderDetails;
+                      textArea.style.position = 'fixed';
+                      textArea.style.left = '-9999px';
+                      document.body.appendChild(textArea);
+                      textArea.focus();
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                      setIsCopied(true);
+                      setTimeout(() => setIsCopied(false), 2000);
+                    }
+                  }}
+                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {isCopied ? (
+                    <><Check className="h-4 w-4" /> Copied!</>
+                  ) : (
+                    <><Copy className="h-4 w-4" /> Copy Order Again</>
+                  )}
+                </button>
+              )}
+
               <button
                 onClick={() => setShowRedirectModal(false)}
                 className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold transition-transform active:scale-95"
