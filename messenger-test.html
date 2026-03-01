@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tea Max Order Redirect</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #f9f9f9;
+            margin: 0;
+        }
+
+        .order-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transform: scale(1);
+            transition: transform 0.1s;
+        }
+
+        .order-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal Styles */
+        #messengerModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .spinner {
+            width: 40px;
+            h-6 bg-blue-500 rounded-full animate-bounce mx-auto mb-4;
+        }
+
+        .modal-h3 {
+            margin: 0 0 10px;
+            font-size: 20px;
+            color: #000;
+        }
+
+        .modal-p {
+            margin: 0 0 20px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .hint-box {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .hint-p {
+            margin: 0;
+            font-size: 12px;
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .fb-warning {
+            display: none;
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .fb-p {
+            margin: 0;
+            font-size: 11px;
+            color: #1565c0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="placeOrderBtn" class="order-btn">Place Order via Messenger</button>
+
+    <!-- Modal HTML -->
+    <div id="messengerModal">
+        <div class="modal-content">
+            <div id="loader" style="margin-bottom: 15px;"><svg width="32" height="32" viewBox="0 0 24 24"
+                    style="animation: spin 1s linear infinite;">
+                    <style>
+                        @keyframes spin {
+                            100% {
+                                transform: rotate(360deg);
+                            }
+                        }
+                    </style>
+                    <path
+                        d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m8.48-8.48l2.83-2.83"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg></div>
+            <h3 class="modal-h3">Opening Messenger...</h3>
+            <p class="modal-p">Your order details have been copied.</p>
+
+            <div class="hint-box">
+                <p class="hint-p">💡 If message box is empty, just PASTE your order in Messenger.</p>
+            </div>
+
+            <div id="fbBrowserWarning" class="fb-warning">
+                <p class="fb-p">⚠️ Inside Facebook? For smoother checkout, tap the (...) and "Open in Safari".</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PAGE_ID = "61577909563825";
+
+        // Detection Logic
+        const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isFB = () => navigator.userAgent.indexOf("FBAN") > -1 || navigator.userAgent.indexOf("FBAV") > -1;
+
+        // Reliable Copy Function
+        async function copyToClipboard(text) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch (err) { }
+
+            // Fallback for older browsers / iOS in-app blockers
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            textArea.style.top = "0";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return true;
+            } catch (err) {
+                document.body.removeChild(textArea);
+                return false;
+            }
+        }
+
+        document.getElementById('placeOrderBtn').addEventListener('click', async () => {
+            const orderData = "Sample Order Details\nItems: 1x Milk Tea\nTotal: 100 PHP\nCustomer: Test";
+
+            // 1. Copy to clipboard
+            await copyToClipboard(orderData);
+
+            // 2. Show Modal
+            const modal = document.getElementById('messengerModal');
+            const fbWarning = document.getElementById('fbBrowserWarning');
+            modal.style.display = 'flex';
+
+            if (isFB()) {
+                fbWarning.style.display = 'block';
+            }
+
+            // 3. Delay then Redirect
+            setTimeout(() => {
+                // We use location.href for internal redirect (more reliable on iOS)
+                window.location.href = `https://m.me/${PAGE_ID}`;
+
+                // Backup for certain browsers
+                setTimeout(() => {
+                    window.location.href = `fb-messenger://user-thread/${PAGE_ID}`;
+                }, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

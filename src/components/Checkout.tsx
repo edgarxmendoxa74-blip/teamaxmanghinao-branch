@@ -16,6 +16,11 @@ const isIOS = (): boolean => {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 };
 
+const isFB = (): boolean => {
+  if (typeof navigator === 'undefined') return false;
+  return navigator.userAgent.indexOf("FBAN") > -1 || navigator.userAgent.indexOf("FBAV") > -1;
+};
+
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { siteSettings } = useSiteSettings();
   const { paymentMethods } = usePaymentMethods();
@@ -117,19 +122,23 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
   const handlePlaceOrder = async () => {
     const orderDetails = generateOrderDetails();
 
-    // Copy to clipboard - critical for iOS where text param doesn't work
+    // 1. Automatically copy formatted order details to clipboard (production-ready reliability)
     try {
-      await navigator.clipboard.writeText(orderDetails);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 3000);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(orderDetails);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 3000);
+      } else {
+        throw new Error('Clipboard API unavailable');
+      }
     } catch (err) {
-      // Fallback for older browsers / restricted contexts
+      // High-reliability fallback for restricted contexts / legacy iOS
       try {
         const textArea = document.createElement('textarea');
         textArea.value = orderDetails;
         textArea.style.position = 'fixed';
         textArea.style.left = '-9999px';
-        textArea.style.top = '-9999px';
+        textArea.style.top = '0';
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
@@ -142,20 +151,26 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
       }
     }
 
-    const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-
-    // Show redirection modal first
+    // 2. Show Redirection Modal
     setShowRedirectModal(true);
 
-    // For non-iOS devices, auto-redirect with text param after a short delay
-    if (!isIOS()) {
-      const encodedMessage = encodeURIComponent(orderDetails);
-      const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
-      setTimeout(() => {
-        window.location.href = messengerUrl;
-      }, 2000);
-    }
-    // For iOS: user manually taps "Open Messenger" button in the modal
+    // 3. After a short delay (500ms), redirect to clean m.me link (no long ?text= params)
+    const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
+    const messengerUrl = `https://m.me/${fbHandle}`;
+
+    setTimeout(() => {
+      window.location.href = messengerUrl;
+
+      // Secondary fallback for specific deep link handlers
+      if (isIOS()) {
+        setTimeout(() => {
+          // Only attempt if still on the same page (redirection didn't trigger app open)
+          if (document.visibilityState === 'visible') {
+            window.location.href = `fb-messenger://user-thread/${fbHandle}`;
+          }
+        }, 1500);
+      }
+    }, 500);
   };
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
@@ -640,38 +655,22 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingBag className="h-8 w-8 animate-bounce" />
             </div>
-            <h3 className="text-2xl font-bold text-black mb-2">
-              {isIOS() ? 'Almost There!' : 'Redirecting...'}
-            </h3>
+            <h3 className="text-2xl font-bold text-black mb-2">Opening Messenger...</h3>
             <p className="text-gray-600 mb-4">
-              {isIOS()
-                ? 'Your order details have been copied. Tap the button below to open Messenger.'
-                : "We're opening Messenger for you to send your order."
-              }
+              Your order details have been copied. If the message box is empty, just <b>PASTE</b> your order.
             </p>
 
             <div className="bg-green-50 p-4 rounded-xl mb-4">
               <p className="text-sm font-medium text-green-800 flex items-center justify-center gap-2">
                 <CheckCircle2 className="h-4 w-4" />
-                Order Details Copied!
+                Details Copied!
               </p>
             </div>
 
-            {isIOS() && (
-              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-4">
-                <p className="text-sm font-bold text-amber-800 mb-1">📋 iPhone Instructions:</p>
-                <p className="text-xs text-amber-700">
-                  1. Tap <b>"Open Messenger"</b> below<br />
-                  2. In the message box, <b>long-press</b> and tap <b>"Paste"</b><br />
-                  3. Tap <b>Send</b> to place your order
-                </p>
-              </div>
-            )}
-
-            {!isIOS() && (
-              <div className="bg-blue-50 p-3 rounded-xl mb-4">
-                <p className="text-xs text-blue-600">
-                  If the message field is empty, just <b>long-press and paste</b> in Messenger.
+            {isFB() && (
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-4">
+                <p className="text-xs text-blue-700 font-bold">
+                  ⚠️ Inside Facebook browser? For a smoother checkout, tap the three dots (...) and select <b>"Open in Safari"</b>.
                 </p>
               </div>
             )}
@@ -680,18 +679,11 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
               <button
                 onClick={() => {
                   const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-                  if (isIOS()) {
-                    // Using window.location.href instead of window.open to avoid Safari blockers
-                    window.location.href = `https://m.me/${fbHandle}`;
-                  } else {
-                    const orderDetails = generateOrderDetails();
-                    const encodedMessage = encodeURIComponent(orderDetails);
-                    window.location.href = `https://m.me/${fbHandle}?text=${encodedMessage}`;
-                  }
+                  window.location.href = `https://m.me/${fbHandle}`;
                 }}
-                className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2"
+                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg"
               >
-                {isIOS() ? '💬 Open Messenger' : 'Go to Messenger Now'}
+                💬 Open Messenger Now
               </button>
 
               {isIOS() && (
