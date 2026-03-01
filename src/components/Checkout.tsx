@@ -25,6 +25,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   const [notes, setNotes] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
   React.useEffect(() => {
@@ -107,13 +108,29 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
     }
   };
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     const orderDetails = generateOrderDetails();
+
+    // Copy to clipboard first as a fallback for iOS/mobile issues
+    try {
+      await navigator.clipboard.writeText(orderDetails);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+
     const encodedMessage = encodeURIComponent(orderDetails);
     const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
     const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
 
-    window.location.href = messengerUrl;
+    // Show redirection modal
+    setShowRedirectModal(true);
+
+    // Short delay before redirection to ensure user sees the modal/instructions
+    setTimeout(() => {
+      window.location.href = messengerUrl;
+    }, 2000);
   };
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
@@ -590,6 +607,51 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
           </p>
         </div>
       </div>
+
+      {/* Redirection Modal */}
+      {showRedirectModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-scale-in">
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShoppingBag className="h-8 w-8 animate-bounce" />
+            </div>
+            <h3 className="text-2xl font-bold text-black mb-2">Redirecting...</h3>
+            <p className="text-gray-600 mb-6">
+              We're opening Messenger for you to send your order.
+            </p>
+
+            <div className="bg-blue-50 p-4 rounded-xl mb-6">
+              <p className="text-sm font-medium text-blue-800 flex items-center justify-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Order Details Copied!
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                If the message field is empty, just <b>long-press and paste</b> in Messenger.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  const orderDetails = generateOrderDetails();
+                  const encodedMessage = encodeURIComponent(orderDetails);
+                  const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
+                  window.location.href = `https://m.me/${fbHandle}?text=${encodedMessage}`;
+                }}
+                className="w-full py-3 bg-black text-white rounded-xl font-bold transition-transform active:scale-95"
+              >
+                Go to Messenger Now
+              </button>
+              <button
+                onClick={() => setShowRedirectModal(false)}
+                className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold transition-transform active:scale-95"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
