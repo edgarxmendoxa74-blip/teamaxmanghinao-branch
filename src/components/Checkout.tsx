@@ -110,7 +110,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
   const handlePlaceOrder = () => {
     const orderDetails = generateOrderDetails();
     const encodedMessage = encodeURIComponent(orderDetails);
-    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || '61577909563825';
+    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
     const messengerUrl = `https://m.me/${fbHandle}?text=${encodedMessage}`;
 
     window.location.href = messengerUrl;
