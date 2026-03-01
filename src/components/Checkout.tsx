@@ -142,7 +142,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
       }
     }
 
-    const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
+    const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
 
     // Show redirection modal first
     setShowRedirectModal(true);
@@ -155,7 +155,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
         window.location.href = messengerUrl;
       }, 2000);
     }
-    // For iOS: user manually taps "Go to Messenger" button in the modal
+    // For iOS: user manually taps "Open Messenger" button in the modal
   };
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
@@ -679,10 +679,10 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             <div className="space-y-3">
               <button
                 onClick={() => {
-                  const fbHandle = siteSettings?.facebook_handle?.replace('@', '') || 'TeamaxManghinao';
+                  const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
                   if (isIOS()) {
-                    // iOS: use clean m.me link without text param for reliability
-                    window.open(`https://m.me/${fbHandle}`, '_blank');
+                    // Using window.location.href instead of window.open to avoid Safari blockers
+                    window.location.href = `https://m.me/${fbHandle}`;
                   } else {
                     const orderDetails = generateOrderDetails();
                     const encodedMessage = encodeURIComponent(orderDetails);
@@ -693,6 +693,21 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
               >
                 {isIOS() ? '💬 Open Messenger' : 'Go to Messenger Now'}
               </button>
+
+              {isIOS() && (
+                <div className="pt-2">
+                  <p className="text-[10px] text-gray-400 mb-2">If Messenger doesn't open, try this alternate link:</p>
+                  <button
+                    onClick={() => {
+                      const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
+                      window.location.href = `https://www.messenger.com/t/${fbHandle}`;
+                    }}
+                    className="w-full py-2 bg-white text-blue-600 border border-blue-600 rounded-lg text-xs font-medium"
+                  >
+                    Open messenger.com
+                  </button>
+                </div>
+              )}
 
               {isIOS() && (
                 <button
