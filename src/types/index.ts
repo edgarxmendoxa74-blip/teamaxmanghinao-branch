@@ -42,21 +42,25 @@ export interface CartItem extends MenuItem {
   totalPrice: number;
 }
 
-export interface OrderData {
-  items: CartItem[];
-  customerName: string;
-  contactNumber: string;
-  serviceType: 'pickup' | 'delivery' | 'dine-in' | 'takeout';
+export interface Order {
+  id: string;
+  customer_name: string;
+  contact_number: string;
+  service_type: string;
   address?: string;
-  pickupTime?: string;
-  paymentMethod: 'gcash' | 'maya' | 'bank-transfer' | 'cod';
-  referenceNumber?: string;
-  total: number;
+  landmark?: string;
+  pickup_time?: string;
+  payment_method: string;
+  total_price: number;
   notes?: string;
+  status: 'pending' | 'preparing' | 'completed' | 'cancelled';
+  items: CartItem[];
+  created_at: string;
 }
 
 export type PaymentMethod = 'gcash' | 'maya' | 'bank-transfer' | 'cod';
 export type ServiceType = 'pickup' | 'delivery';
+
 
 // Site Settings Types
 export interface SiteSetting {

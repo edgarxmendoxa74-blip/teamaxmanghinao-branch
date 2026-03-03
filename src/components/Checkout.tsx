@@ -3,6 +3,8 @@ import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, Copy, Check, ShoppingBag,
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useOrders } from '../hooks/useOrders';
+
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -38,6 +40,10 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   const [showQRModal, setShowQRModal] = useState(false);
   const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const { createOrder } = useOrders();
+
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -51,6 +57,8 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
   }, [paymentMethods, paymentMethod]);
 
   const selectedPaymentMethod = paymentMethods.find(method => method.id === paymentMethod);
+
+  const pickup_time_formatted = pickupTime === 'custom' ? customTime : `${pickupTime} minutes`;
 
   const handleProceedToPayment = () => {
     setStep('payment');
@@ -120,58 +128,112 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
   };
 
   const handlePlaceOrder = async () => {
-    const orderDetails = generateOrderDetails();
-
-    // 1. Automatically copy formatted order details to clipboard (production-ready reliability)
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(orderDetails);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 3000);
-      } else {
-        throw new Error('Clipboard API unavailable');
-      }
-    } catch (err) {
-      // High-reliability fallback for restricted contexts / legacy iOS
+      setIsSubmitting(true);
+
+      // 1. Save order to database FIRST (ensure we have the data in dashboard)
+      await createOrder({
+        customer_name: customerName,
+        contact_number: contactNumber,
+        service_type: serviceType,
+        address: address || undefined,
+        landmark: landmark || undefined,
+        pickup_time: pickup_time_formatted,
+        payment_method: selectedPaymentMethod?.name || paymentMethod,
+        total_price: totalPrice,
+        items: cartItems,
+        notes: notes || undefined
+      });
+
+      // 2. Prepare order details for clipboard
+      const orderDetails = generateOrderDetails();
+
+      // 3. Automatically copy to clipboard
       try {
-        const textArea = document.createElement('textarea');
-        textArea.value = orderDetails;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        textArea.style.top = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 3000);
-      } catch (fallbackErr) {
-        console.error('Failed to copy text: ', fallbackErr);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(orderDetails);
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 3000);
+        } else {
+          throw new Error('Clipboard API unavailable');
+        }
+      } catch (err) {
+        // Fallback
+        try {
+          const textArea = document.createElement('textarea');
+          textArea.value = orderDetails;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          textArea.style.top = '0';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 3000);
+        } catch (fallbackErr) {
+          console.error('Failed to copy text: ', fallbackErr);
+        }
       }
+
+      // 4. Show Redirection Modal
+      setShowRedirectModal(true);
+
+      // 5. Redirect to Messenger
+      const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
+      const messengerUrl = `https://m.me/${fbHandle}`;
+
+      setTimeout(() => {
+        if (isIOS()) {
+          window.location.href = `fb-messenger://user-thread/${fbHandle}`;
+          setTimeout(() => {
+            if (document.visibilityState === 'visible') {
+              window.location.href = messengerUrl;
+            }
+          }, 1500);
+        } else {
+          window.location.href = messengerUrl;
+        }
+      }, 500);
+
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      alert('Failed to place order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // 2. Show Redirection Modal
-    setShowRedirectModal(true);
-
-    // 3. After a short delay (500ms), redirect to clean m.me link (no long ?text= params)
-    const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-    const messengerUrl = `https://m.me/${fbHandle}`;
-
-    setTimeout(() => {
-      window.location.href = messengerUrl;
-
-      // Secondary fallback for specific deep link handlers
-      if (isIOS()) {
-        setTimeout(() => {
-          // Only attempt if still on the same page (redirection didn't trigger app open)
-          if (document.visibilityState === 'visible') {
-            window.location.href = `fb-messenger://user-thread/${fbHandle}`;
-          }
-        }, 1500);
-      }
-    }, 500);
   };
+
+  const handlePlaceOrderIOS = async () => {
+    try {
+      setIsSubmitting(true);
+      await createOrder({
+        customer_name: customerName,
+        contact_number: contactNumber,
+        service_type: serviceType,
+        address: address || undefined,
+        landmark: landmark || undefined,
+        pickup_time: pickup_time_formatted,
+        payment_method: selectedPaymentMethod?.name || paymentMethod,
+        total_price: totalPrice,
+        notes: notes || undefined,
+        items: cartItems
+      });
+      setOrderSuccess(true);
+
+      // Clear cart locally if possible (refreshing is a brute force way)
+      setTimeout(() => {
+        window.location.href = '/'; // Redirect to home instead of reload
+      }, 3000);
+    } catch (err) {
+      console.error('Failed to place order:', err);
+      alert('Failed to place order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
 
   const isDetailsValid = customerName.trim() && contactNumber.trim() &&
     (serviceType !== 'delivery' || address.trim()) &&
@@ -631,22 +693,60 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              handlePlaceOrder();
-            }}
-            className="w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md"
-          >
-            Place Order via Messenger
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePlaceOrder();
+              }}
+              className="flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md"
+            >
+              Place Order
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePlaceOrderIOS();
+              }}
+              className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isSubmitting
+                ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'border-teamax-accent bg-white text-teamax-accent hover:bg-teamax-accent hover:text-white active:bg-teamax-accent active:text-white hover:scale-[1.01] active:scale-95 shadow-md'
+                }`}
+            >
+              {isSubmitting ? 'Placing Order...' : 'Place Order for iOS Users'}
+            </button>
+          </div>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            You'll be redirected to Messenger to confirm your order.
+            Choose your preferred way to order. All orders go directly to our dashboard.
           </p>
         </div>
       </div>
+
+      {/* Success Modal for iOS Orders */}
+      {orderSuccess && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-scale-in">
+            <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="h-8 w-8 animate-bounce" />
+            </div>
+            <h3 className="text-2xl font-bold text-black mb-2">Order Placed!</h3>
+            <p className="text-gray-600 mb-4">
+              Your order has been sent successfully. We will contact you soon for confirmation.
+            </p>
+            <div className="bg-green-50 p-4 rounded-xl">
+              <p className="text-sm font-medium text-green-800">
+                Refreshing in a few seconds...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Redirection Modal */}
       {showRedirectModal && (

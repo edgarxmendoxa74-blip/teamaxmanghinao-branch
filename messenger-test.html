@@ -39,6 +39,7 @@
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.8);
+            -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
             align-items: center;
             justify-content: center;
@@ -58,7 +59,12 @@
 
         .spinner {
             width: 40px;
-            h-6 bg-blue-500 rounded-full animate-bounce mx-auto mb-4;
+            height: 24px;
+            background-color: #3b82f6;
+            border-radius: 12px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 16px;
         }
 
         .modal-h3 {
@@ -105,6 +111,20 @@
             color: #1565c0;
             font-weight: bold;
         }
+
+        #loader {
+            margin-bottom: 15px;
+        }
+
+        .spin-svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -115,19 +135,13 @@
     <!-- Modal HTML -->
     <div id="messengerModal">
         <div class="modal-content">
-            <div id="loader" style="margin-bottom: 15px;"><svg width="32" height="32" viewBox="0 0 24 24"
-                    style="animation: spin 1s linear infinite;">
-                    <style>
-                        @keyframes spin {
-                            100% {
-                                transform: rotate(360deg);
-                            }
-                        }
-                    </style>
+            <div id="loader">
+                <svg width="32" height="32" viewBox="0 0 24 24" class="spin-svg">
                     <path
                         d="M12 2v4m0 12v4M4.22 4.22l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.22 19.78l2.83-2.83m8.48-8.48l2.83-2.83"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                </svg></div>
+                </svg>
+            </div>
             <h3 class="modal-h3">Opening Messenger...</h3>
             <p class="modal-p">Your order details have been copied.</p>
 
