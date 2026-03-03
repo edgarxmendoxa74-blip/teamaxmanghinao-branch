@@ -8,7 +8,7 @@ interface OrderManagerProps {
 }
 
 const OrderManager: React.FC<OrderManagerProps> = ({ onBack }) => {
-    const { orders, loading, updateOrderStatus, deleteOrder } = useOrders();
+    const { orders, loading, error, updateOrderStatus, deleteOrder, refetch } = useOrders();
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     const getStatusColor = (status: Order['status']) => {
@@ -44,11 +44,23 @@ const OrderManager: React.FC<OrderManagerProps> = ({ onBack }) => {
                             </button>
                             <h1 className="text-xl font-serif font-bold text-black">Customer Orders</h1>
                         </div>
+                        <button
+                            onClick={() => refetch()}
+                            className="flex items-center space-x-2 text-black hover:text-black transition-colors duration-200"
+                        >
+                            <span className="font-bold uppercase tracking-widest text-[10px]">Refresh</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 py-8">
+                {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-medium flex items-center justify-between">
+                        <span>Error: {error}</span>
+                        <button onClick={() => refetch()} className="underline font-bold">Try Again</button>
+                    </div>
+                )}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Orders List */}
                     <div className="lg:col-span-2 space-y-4">

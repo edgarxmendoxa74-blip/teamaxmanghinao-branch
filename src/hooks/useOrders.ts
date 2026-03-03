@@ -21,6 +21,9 @@ export const useOrders = () => {
             setError(null);
         } catch (err) {
             console.error('Error fetching orders:', err);
+            if (err && typeof err === 'object' && 'message' in err) {
+                console.error('Detailed Supabase Error:', JSON.stringify(err, null, 2));
+            }
             setError(err instanceof Error ? err.message : 'Failed to fetch orders');
         } finally {
             setLoading(false);
@@ -49,7 +52,7 @@ export const useOrders = () => {
 
             // Optional: only fetch if we expect to have permission
             // but fetchOrders has its own error handling so it's safe to call
-            fetchOrders();
+            await fetchOrders();
             return true;
         } catch (err) {
             console.error('Error creating order:', err);

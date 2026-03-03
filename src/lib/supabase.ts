@@ -198,6 +198,53 @@ export type Database = {
           updated_at?: string;
         };
       };
+      orders: {
+        Row: {
+          id: string;
+          customer_name: string;
+          contact_number: string;
+          service_type: string;
+          address: string | null;
+          landmark: string | null;
+          pickup_time: string | null;
+          payment_method: string;
+          total_price: number;
+          notes: string | null;
+          status: 'pending' | 'preparing' | 'completed' | 'cancelled';
+          items: any;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_name: string;
+          contact_number: string;
+          service_type: string;
+          address?: string | null;
+          landmark?: string | null;
+          pickup_time?: string | null;
+          payment_method: string;
+          total_price: number;
+          notes?: string | null;
+          status?: 'pending' | 'preparing' | 'completed' | 'cancelled';
+          items: any;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          customer_name?: string;
+          contact_number?: string;
+          service_type?: string;
+          address?: string | null;
+          landmark?: string | null;
+          pickup_time?: string | null;
+          payment_method?: string;
+          total_price?: number;
+          notes?: string | null;
+          status?: 'pending' | 'preparing' | 'completed' | 'cancelled';
+          items?: any;
+          created_at?: string;
+        };
+      };
     };
   };
 };

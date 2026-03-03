@@ -131,24 +131,10 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
     try {
       setIsSubmitting(true);
 
-      // 1. Save order to database FIRST (ensure we have the data in dashboard)
-      await createOrder({
-        customer_name: customerName,
-        contact_number: contactNumber,
-        service_type: serviceType,
-        address: address || undefined,
-        landmark: landmark || undefined,
-        pickup_time: pickup_time_formatted,
-        payment_method: selectedPaymentMethod?.name || paymentMethod,
-        total_price: totalPrice,
-        items: cartItems,
-        notes: notes || undefined
-      });
-
-      // 2. Prepare order details for clipboard
+      // 1. Prepare order details for clipboard
       const orderDetails = generateOrderDetails();
 
-      // 3. Automatically copy to clipboard
+      // 2. Automatically copy to clipboard
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(orderDetails);
@@ -177,10 +163,10 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
         }
       }
 
-      // 4. Show Redirection Modal
+      // 3. Show Redirection Modal
       setShowRedirectModal(true);
 
-      // 5. Redirect to Messenger
+      // 4. Redirect to Messenger
       const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
       const messengerUrl = `https://m.me/${fbHandle}`;
 
