@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, Copy, Check, ShoppingBag, Truck, Banknote, Smartphone } from 'lucide-react';
+import { ArrowLeft, Clock, CheckCircle2, Maximize2, X, ShoppingBag, Truck, Banknote, Smartphone } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import { useSiteSettings } from '../hooks/useSiteSettings';
@@ -38,7 +38,6 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
 
   const [notes, setNotes] = useState('');
   const [showQRModal, setShowQRModal] = useState(false);
-  const [showRedirectModal, setShowRedirectModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
@@ -64,132 +63,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) =>
     setStep('payment');
   };
 
-  const generateOrderDetails = () => {
-    const timeInfo = serviceType === 'pickup'
-      ? (pickupTime === 'custom' ? customTime : `${pickupTime} minutes`)
-      : '';
 
-    const serviceLabel = serviceType.charAt(0).toUpperCase() + serviceType.slice(1);
-
-    return `
-${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"} - ORDER
-
-Customer: ${customerName}
-Contact: ${contactNumber}
-Service: ${serviceLabel}
-${serviceType === 'delivery' ? `Address: ${address}${landmark ? `\nLandmark: ${landmark}` : ''}` : ''}
-${serviceType === 'pickup' ? `Time: ${timeInfo}` : ''}
-
-ORDER DETAILS:
-
-${cartItems.map(item => {
-      let itemDetails = `${item.quantity} x ${item.name}`;
-      if (item.selectedVariation) {
-        itemDetails += ` (${item.selectedVariation.name})`;
-      }
-      if (item.selectedFlavor) {
-        itemDetails += ` (${item.selectedFlavor})`;
-      }
-      if (item.selectedAddOns && item.selectedAddOns.length > 0) {
-        itemDetails += ` + ${item.selectedAddOns.map(addOn =>
-          addOn.quantity && addOn.quantity > 1
-            ? `${addOn.name} x${addOn.quantity}`
-            : addOn.name
-        ).join(', ')}`;
-      }
-      itemDetails += ` \u20B1${item.totalPrice * item.quantity}`;
-      return itemDetails;
-    }).join('\n\n')}
-
-
-TOTAL: \u20B1${totalPrice}
-${serviceType === 'delivery' ? `Delivery Fee: To be added by rider` : ''}
-Payment: ${selectedPaymentMethod?.name || paymentMethod}
-${paymentMethod !== 'cod'
-        ? ``
-        : 'Payment Status: Cash on Delivery'
-      }
-
-${notes ? `Notes: ${notes}` : ''}
-
-Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 Branch"}!
-    `.trim();
-  };
-
-  const handleCopyOrder = async () => {
-    const text = generateOrderDetails();
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
-
-  const handlePlaceOrder = async () => {
-    try {
-      setIsSubmitting(true);
-
-      // 1. Prepare order details for clipboard
-      const orderDetails = generateOrderDetails();
-
-      // 2. Automatically copy to clipboard
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(orderDetails);
-          setIsCopied(true);
-          setTimeout(() => setIsCopied(false), 3000);
-        } else {
-          throw new Error('Clipboard API unavailable');
-        }
-      } catch (err) {
-        // Fallback
-        try {
-          const textArea = document.createElement('textarea');
-          textArea.value = orderDetails;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-9999px';
-          textArea.style.top = '0';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textArea);
-          setIsCopied(true);
-          setTimeout(() => setIsCopied(false), 3000);
-        } catch (fallbackErr) {
-          console.error('Failed to copy text: ', fallbackErr);
-        }
-      }
-
-      // 3. Show Redirection Modal
-      setShowRedirectModal(true);
-
-      // 4. Redirect to Messenger
-      const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-      const messengerUrl = `https://m.me/${fbHandle}`;
-
-      setTimeout(() => {
-        if (isIOS()) {
-          window.location.href = `fb-messenger://user-thread/${fbHandle}`;
-          setTimeout(() => {
-            if (document.visibilityState === 'visible') {
-              window.location.href = messengerUrl;
-            }
-          }, 1500);
-        } else {
-          window.location.href = messengerUrl;
-        }
-      }, 500);
-
-    } catch (err) {
-      console.error('Failed to place order:', err);
-      alert('Failed to place order. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handlePlaceOrderIOS = async () => {
     try {
@@ -609,22 +483,6 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-serif font-medium text-black">Final Order Summary</h2>
-            <button
-              onClick={handleCopyOrder}
-              className="flex items-center space-x-2 text-sm font-medium text-teamax-accent hover:text-black transition-colors bg-teamax-accent/10 px-3 py-1.5 rounded-lg"
-            >
-              {isCopied ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  <span>Copy Details</span>
-                </>
-              )}
-            </button>
           </div>
 
           <div className="space-y-4 mb-6">
@@ -679,18 +537,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePlaceOrder();
-              }}
-              className="flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 border-black bg-white text-black hover:bg-black hover:text-white active:bg-black active:text-white hover:scale-[1.01] active:scale-95 shadow-md"
-            >
-              Place Order
-            </button>
-
+          <div className="flex flex-col gap-3">
             <button
               type="button"
               disabled={isSubmitting}
@@ -698,17 +545,17 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
                 e.preventDefault();
                 handlePlaceOrderIOS();
               }}
-              className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isSubmitting
+              className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-200 transform border-2 ${isSubmitting
                 ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'border-teamax-accent bg-white text-teamax-accent hover:bg-teamax-accent hover:text-white active:bg-teamax-accent active:text-white hover:scale-[1.01] active:scale-95 shadow-md'
                 }`}
             >
-              {isSubmitting ? 'Placing Order...' : 'Place Order for iOS Users'}
+              {isSubmitting ? 'Placing Order...' : 'Place Order'}
             </button>
           </div>
 
           <p className="text-xs text-gray-500 text-center mt-3">
-            Choose your preferred way to order. All orders go directly to our dashboard.
+            All orders go directly to our dashboard.
           </p>
         </div>
       </div>
@@ -734,101 +581,7 @@ Thank you for choosing ${siteSettings?.site_name || "Tea Max Coffee Manghinao 1 
       )}
 
 
-      {/* Redirection Modal */}
-      {showRedirectModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-scale-in">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingBag className="h-8 w-8 animate-bounce" />
-            </div>
-            <h3 className="text-2xl font-bold text-black mb-2">Opening Messenger...</h3>
-            <p className="text-gray-600 mb-4">
-              Your order details have been copied. If the message box is empty, just <b>PASTE</b> your order.
-            </p>
 
-            <div className="bg-green-50 p-4 rounded-xl mb-4">
-              <p className="text-sm font-medium text-green-800 flex items-center justify-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
-                Details Copied!
-              </p>
-            </div>
-
-            {isFB() && (
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-4">
-                <p className="text-xs text-blue-700 font-bold">
-                  ⚠️ Inside Facebook browser? For a smoother checkout, tap the three dots (...) and select <b>"Open in Safari"</b>.
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-                  window.location.href = `https://m.me/${fbHandle}`;
-                }}
-                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2 shadow-lg"
-              >
-                💬 Open Messenger Now
-              </button>
-
-              {isIOS() && (
-                <div className="pt-2">
-                  <p className="text-[10px] text-gray-400 mb-2">If Messenger doesn't open, try this alternate link:</p>
-                  <button
-                    onClick={() => {
-                      const fbHandle = siteSettings?.facebook_handle?.replace('@', '').trim() || '61577909563825';
-                      window.location.href = `https://www.messenger.com/t/${fbHandle}`;
-                    }}
-                    className="w-full py-2 bg-white text-blue-600 border border-blue-600 rounded-lg text-xs font-medium"
-                  >
-                    Open messenger.com
-                  </button>
-                </div>
-              )}
-
-              {isIOS() && (
-                <button
-                  onClick={async () => {
-                    const orderDetails = generateOrderDetails();
-                    try {
-                      await navigator.clipboard.writeText(orderDetails);
-                      setIsCopied(true);
-                      setTimeout(() => setIsCopied(false), 2000);
-                    } catch (err) {
-                      const textArea = document.createElement('textarea');
-                      textArea.value = orderDetails;
-                      textArea.style.position = 'fixed';
-                      textArea.style.left = '-9999px';
-                      document.body.appendChild(textArea);
-                      textArea.focus();
-                      textArea.select();
-                      document.execCommand('copy');
-                      document.body.removeChild(textArea);
-                      setIsCopied(true);
-                      setTimeout(() => setIsCopied(false), 2000);
-                    }
-                  }}
-                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2"
-                >
-                  {isCopied ? (
-                    <><Check className="h-4 w-4" /> Copied!</>
-                  ) : (
-                    <><Copy className="h-4 w-4" /> Copy Order Again</>
-                  )}
-                </button>
-              )}
-
-              <button
-                onClick={() => setShowRedirectModal(false)}
-                className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold transition-transform active:scale-95"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
