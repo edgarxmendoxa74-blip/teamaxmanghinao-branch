@@ -96,7 +96,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
           <div className="bg-gray-50 rounded-2xl p-6 text-left mb-8 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Total Paid</span>
-              <span className="text-black font-bold">₱{totalPrice}</span>
+              <span className="text-black font-bold">₱{(totalPrice || 0)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Payment Method</span>
@@ -155,9 +155,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
                         Add-ons: {item.selectedAddOns.map(addOn => addOn.name).join(', ')}
                       </p>
                     )}
-                    <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
+                    <p className="text-sm text-gray-600">₱{(item.totalPrice || 0)} x {item.quantity}</p>
                   </div>
-                  <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+                  <span className="font-semibold text-black">₱{((item.totalPrice || 0) * (item.quantity || 0))}</span>
                 </div>
               ))}
             </div>
@@ -165,7 +165,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
                 <span>Total:</span>
-                <span>₱{totalPrice}</span>
+                <span>₱{(totalPrice || 0)}</span>
               </div>
             </div>
           </div>
@@ -412,7 +412,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
                     </div>
                   )}
                   <div className="pt-2">
-                    <p className="text-2xl font-bold text-black">₱{totalPrice}</p>
+                    <p className="text-2xl font-bold text-black">₱{(totalPrice || 0)}</p>
                     <p className="text-[10px] text-gray-400">Exact amount to pay</p>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Total:</span>
-                    <span className="font-bold text-black">₱{totalPrice}</span>
+                    <span className="font-bold text-black">₱{(totalPrice || 0)}</span>
                   </div>
                 </div>
                 <button
@@ -552,9 +552,9 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
                       ).join(', ')}
                     </p>
                   )}
-                  <p className="text-sm text-gray-600">₱{item.totalPrice} x {item.quantity}</p>
+                  <p className="text-sm text-gray-600">₱{(item.totalPrice || 0)} x {item.quantity}</p>
                 </div>
-                <span className="font-semibold text-black">₱{item.totalPrice * item.quantity}</span>
+                <span className="font-semibold text-black">₱{((item.totalPrice || 0) * (item.quantity || 0))}</span>
               </div>
             ))}
           </div>
@@ -562,7 +562,7 @@ const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack, onSu
           <div className="border-t border-gray-200 pt-4 mb-6">
             <div className="flex items-center justify-between text-2xl font-serif font-semibold text-black">
               <span>Total:</span>
-              <span>₱{totalPrice}</span>
+              <span>₱{(totalPrice || 0)}</span>
             </div>
           </div>
 

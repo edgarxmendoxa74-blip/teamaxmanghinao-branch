@@ -74,7 +74,7 @@ ${order.notes ? `📝 Notes: ${order.notes}\n` : ''}
 🛒 Items:
 ${itemsList}
 
-💰 Total: ₱${order.total_price}
+💰 Total: ₱${(order.total_price || 0)}
 `.trim();
 
         navigator.clipboard.writeText(summary);
@@ -164,7 +164,7 @@ ${itemsList}
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="text-right">
-                                            <p className="font-bold text-black">₱{order.total_price}</p>
+                                            <p className="font-bold text-black">₱{(order.total_price || 0)}</p>
                                             <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">{order.payment_method}</p>
                                         </div>
                                         <button
@@ -296,7 +296,7 @@ ${itemsList}
                                             <div className="flex-1">
                                                 <h5 className="text-xs font-bold text-black">{item.name}</h5>
                                                 <p className="text-[10px] text-gray-500">
-                                                    {item.quantity} x ₱{item.unit_price}
+                                                    {item.quantity} x ₱{(item.unit_price || 0)}
                                                     {item.variation_name && ` • ${item.variation_name}`}
                                                     {item.flavor_name && ` • ${item.flavor_name}`}
                                                 </p>
@@ -311,7 +311,7 @@ ${itemsList}
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xs font-bold text-black">₱{item.total_item_price}</p>
+                                                <p className="text-xs font-bold text-black">₱{(item.total_item_price || 0)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -321,7 +321,7 @@ ${itemsList}
                             <div className="pt-4 border-t border-gray-100">
                                 <div className="flex justify-between items-center bg-black text-white p-4 rounded-2xl shadow-lg">
                                     <span className="text-[10px] font-bold uppercase tracking-widest">Grand Total</span>
-                                    <span className="text-xl font-bold font-serif">₱{selectedOrder.total_price}</span>
+                                    <span className="text-xl font-bold font-serif">₱{(selectedOrder.total_price || 0)}</span>
                                 </div>
                             </div>
                         </div>
