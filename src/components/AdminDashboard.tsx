@@ -875,11 +875,11 @@ const AdminDashboard: React.FC = () => {
                                   <div className="flex flex-col">
                                     {item.isOnDiscount && item.discountPrice ? (
                                       <>
-                                        <span className="text-black font-bold text-base">₱{item.discountPrice.toFixed(2)}</span>
-                                        <span className="text-black/30 line-through text-[10px] font-bold">₱{item.basePrice.toFixed(2)}</span>
+                                        <span className="text-black font-bold text-base">₱{(item.discountPrice || 0).toFixed(2)}</span>
+                                        <span className="text-black/30 line-through text-[10px] font-bold">₱{(item.basePrice || 0).toFixed(2)}</span>
                                       </>
                                     ) : (
-                                      <span className="text-black font-bold text-base">₱{item.basePrice.toFixed(2)}</span>
+                                      <span className="text-black font-bold text-base">₱{(item.basePrice || 0).toFixed(2)}</span>
                                     )}
                                   </div>
                                 </td>
@@ -941,7 +941,7 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                                 <div>
                                   <h3 className="font-bold text-black text-sm">{item.name}</h3>
-                                  <p className="text-[10px] text-black/50">₱{item.basePrice.toFixed(2)}</p>
+                                  <p className="text-[10px] text-black/50">₱{(item.basePrice || 0).toFixed(2)}</p>
                                 </div>
                               </div>
                               <div className="flex gap-2">
