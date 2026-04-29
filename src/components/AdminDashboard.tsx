@@ -37,7 +37,8 @@ const AdminDashboard: React.FC = () => {
     popular: false,
     available: true,
     variations: [],
-    addOns: []
+    addOns: [],
+    flavors: []
   });
 
   const handleAddItem = () => {
@@ -51,7 +52,8 @@ const AdminDashboard: React.FC = () => {
       popular: false,
       available: true,
       variations: [],
-      addOns: []
+      addOns: [],
+      flavors: []
     });
   };
 
@@ -75,8 +77,8 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSaveItem = async () => {
-    if (!formData.name || !formData.description || !formData.basePrice) {
-      alert('Please fill in all required fields');
+    if (!formData.name || !formData.description || formData.basePrice === undefined || formData.basePrice === null) {
+      alert('Please fill in all required fields (Name, Description, and Base Price)');
       return;
     }
 
@@ -93,8 +95,10 @@ const AdminDashboard: React.FC = () => {
 
       setCurrentView('items');
       setEditingItem(null);
-    } catch (error) {
-      alert('Failed to save item');
+    } catch (error: any) {
+      console.error('Failed to save item:', error);
+      const errorMessage = error?.message || error?.error_description || (typeof error === 'string' ? error : 'Unknown error');
+      alert(`Failed to save item: ${errorMessage}`);
     }
   };
 

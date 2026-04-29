@@ -79,26 +79,35 @@ export const useMenu = () => {
   const addMenuItem = async (item: Omit<MenuItem, 'id'>) => {
     try {
       // Insert menu item
+      const insertData = {
+        name: item.name,
+        description: item.description,
+        base_price: Number(item.basePrice) || 0,
+        category: item.category,
+        popular: !!item.popular,
+        available: item.available ?? true,
+        image_url: item.image || null,
+        discount_price: item.discountPrice ? Number(item.discountPrice) : null,
+        discount_start_date: item.discountStartDate || null,
+        discount_end_date: item.discountEndDate || null,
+        discount_active: !!item.discountActive,
+        flavors: item.flavors || []
+      };
+
       const { data: menuItem, error: itemError } = await supabase
         .from('menu_items')
-        .insert({
-          name: item.name,
-          description: item.description,
-          base_price: item.basePrice,
-          category: item.category,
-          popular: item.popular || false,
-          available: item.available ?? true,
-          image_url: item.image || null,
-          discount_price: item.discountPrice || null,
-          discount_start_date: item.discountStartDate || null,
-          discount_end_date: item.discountEndDate || null,
-          discount_active: item.discountActive || false,
-          flavors: item.flavors || []
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (itemError) throw itemError;
+      if (itemError) {
+        console.error('Supabase error adding item:', itemError);
+        throw itemError;
+      }
+
+      if (!menuItem) {
+        throw new Error('Failed to create menu item - no data returned');
+      }
 
       // Insert variations if any
       if (item.variations && item.variations.length > 0) {
@@ -108,11 +117,16 @@ export const useMenu = () => {
             item.variations.map(v => ({
               menu_item_id: menuItem.id,
               name: v.name,
-              price: v.price
+              price: Number(v.price) || 0
             }))
           );
 
-        if (variationsError) throw variationsError;
+        if (variationsError) {
+          console.error('Error adding variations:', variationsError);
+          // We don't throw here to avoid losing the main item, but maybe we should?
+          // For now, let's throw to be safe and consistent with previous behavior
+          throw variationsError;
+        }
       }
 
       // Insert add-ons if any
@@ -123,83 +137,99 @@ export const useMenu = () => {
             item.addOns.map(a => ({
               menu_item_id: menuItem.id,
               name: a.name,
-              price: a.price,
+              price: Number(a.price) || 0,
               category: a.category
             }))
           );
 
-        if (addOnsError) throw addOnsError;
+        if (addOnsError) {
+          console.error('Error adding add-ons:', addOnsError);
+          throw addOnsError;
+        }
       }
 
       await fetchMenuItems();
       return menuItem;
     } catch (err) {
-      console.error('Error adding menu item:', err);
+      console.error('Error in addMenuItem:', err);
       throw err;
     }
   };
 
   const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
     try {
-      // Update menu item
+      // Construct update object carefully to only include defined fields
+      const updateData: any = {};
+      
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.basePrice !== undefined) updateData.base_price = Number(updates.basePrice) || 0;
+      if (updates.category !== undefined) updateData.category = updates.category;
+      if (updates.popular !== undefined) updateData.popular = !!updates.popular;
+      if (updates.available !== undefined) updateData.available = !!updates.available;
+      if (updates.image !== undefined) updateData.image_url = updates.image || null;
+      if (updates.discountPrice !== undefined) updateData.discount_price = updates.discountPrice ? Number(updates.discountPrice) : null;
+      if (updates.discountStartDate !== undefined) updateData.discount_start_date = updates.discountStartDate || null;
+      if (updates.discountEndDate !== undefined) updateData.discount_end_date = updates.discountEndDate || null;
+      if (updates.discountActive !== undefined) updateData.discount_active = !!updates.discountActive;
+      if (updates.flavors !== undefined) updateData.flavors = updates.flavors || [];
+
       const { error: itemError } = await supabase
         .from('menu_items')
-        .update({
-          name: updates.name,
-          description: updates.description,
-          base_price: updates.basePrice,
-          category: updates.category,
-          popular: updates.popular,
-          available: updates.available,
-          image_url: updates.image || null,
-          discount_price: updates.discountPrice || null,
-          discount_start_date: updates.discountStartDate || null,
-          discount_end_date: updates.discountEndDate || null,
-          discount_active: updates.discountActive,
-          flavors: updates.flavors
-        })
+        .update(updateData)
         .eq('id', id);
 
-      if (itemError) throw itemError;
-
-      // Delete existing variations and add-ons
-      await supabase.from('variations').delete().eq('menu_item_id', id);
-      await supabase.from('add_ons').delete().eq('menu_item_id', id);
-
-      // Insert new variations
-      if (updates.variations && updates.variations.length > 0) {
-        const { error: variationsError } = await supabase
-          .from('variations')
-          .insert(
-            updates.variations.map(v => ({
-              menu_item_id: id,
-              name: v.name,
-              price: v.price
-            }))
-          );
-
-        if (variationsError) throw variationsError;
+      if (itemError) {
+        console.error('Supabase error updating item:', itemError);
+        throw itemError;
       }
 
-      // Insert new add-ons
-      if (updates.addOns && updates.addOns.length > 0) {
-        const { error: addOnsError } = await supabase
-          .from('add_ons')
-          .insert(
-            updates.addOns.map(a => ({
-              menu_item_id: id,
-              name: a.name,
-              price: a.price,
-              category: a.category
-            }))
-          );
+      // Handle variations and add-ons if they were provided in the updates
+      // This part is a bit tricky since they are in separate tables
+      if (updates.variations !== undefined) {
+        // Delete existing variations
+        const { error: delVarError } = await supabase.from('variations').delete().eq('menu_item_id', id);
+        if (delVarError) console.warn('Error deleting old variations:', delVarError);
 
-        if (addOnsError) throw addOnsError;
+        // Insert new variations
+        if (updates.variations.length > 0) {
+          const { error: variationsError } = await supabase
+            .from('variations')
+            .insert(
+              updates.variations.map(v => ({
+                menu_item_id: id,
+                name: v.name,
+                price: Number(v.price) || 0
+              }))
+            );
+          if (variationsError) throw variationsError;
+        }
+      }
+
+      if (updates.addOns !== undefined) {
+        // Delete existing add-ons
+        const { error: delAddOnError } = await supabase.from('add_ons').delete().eq('menu_item_id', id);
+        if (delAddOnError) console.warn('Error deleting old add-ons:', delAddOnError);
+
+        // Insert new add-ons
+        if (updates.addOns.length > 0) {
+          const { error: addOnsError } = await supabase
+            .from('add_ons')
+            .insert(
+              updates.addOns.map(a => ({
+                menu_item_id: id,
+                name: a.name,
+                price: Number(a.price) || 0,
+                category: a.category
+              }))
+            );
+          if (addOnsError) throw addOnsError;
+        }
       }
 
       await fetchMenuItems();
     } catch (err) {
-      console.error('Error updating menu item:', err);
+      console.error('Error in updateMenuItem:', err);
       throw err;
     }
   };
