@@ -83,6 +83,7 @@ export const useMenu = () => {
         name: item.name,
         description: item.description,
         base_price: Number(item.basePrice) || 0,
+        price: Number(item.basePrice) || 0,
         category: item.category,
         popular: !!item.popular,
         available: item.available ?? true,
@@ -163,7 +164,10 @@ export const useMenu = () => {
       
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.basePrice !== undefined) updateData.base_price = Number(updates.basePrice) || 0;
+      if (updates.basePrice !== undefined) {
+        updateData.base_price = Number(updates.basePrice) || 0;
+        updateData.price = Number(updates.basePrice) || 0;
+      }
       if (updates.category !== undefined) updateData.category = updates.category;
       if (updates.popular !== undefined) updateData.popular = !!updates.popular;
       if (updates.available !== undefined) updateData.available = !!updates.available;

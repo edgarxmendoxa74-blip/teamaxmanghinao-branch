@@ -50,6 +50,7 @@ export const initializeDatabase = async () => {
           name: item.name,
           description: item.description,
           base_price: item.basePrice,
+          price: item.basePrice,
           category: item.category,
           popular: item.popular || false,
           available: item.available ?? true,
