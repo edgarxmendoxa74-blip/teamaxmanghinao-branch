@@ -241,6 +241,7 @@ async function uploadTerrazaMenu(menuPath) {
               name: item.name,
               description: item.description,
               base_price: item.price,
+              price: item.price,
               category: categoryId,
               image_url: imageUrl,
               available: true,
