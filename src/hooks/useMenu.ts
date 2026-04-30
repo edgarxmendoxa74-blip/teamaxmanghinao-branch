@@ -102,7 +102,7 @@ export const useMenu = () => {
         .single();
 
       if (itemError) {
-        console.error('Supabase error adding item:', itemError);
+        console.error('Supabase error adding item:', JSON.stringify(itemError, null, 2));
         throw itemError;
       }
 
@@ -152,7 +152,7 @@ export const useMenu = () => {
       await fetchMenuItems();
       return menuItem;
     } catch (err) {
-      console.error('Error in addMenuItem:', err);
+      console.error('Error in addMenuItem:', JSON.stringify(err, null, 2));
       throw err;
     }
   };
@@ -165,8 +165,9 @@ export const useMenu = () => {
       if (updates.name !== undefined) updateData.name = updates.name;
       if (updates.description !== undefined) updateData.description = updates.description;
       if (updates.basePrice !== undefined) {
-        updateData.base_price = Number(updates.basePrice) || 0;
-        updateData.price = Number(updates.basePrice) || 0;
+        const p = Number(updates.basePrice) || 0;
+        updateData.base_price = p;
+        updateData.price = p;
       }
       if (updates.category !== undefined) updateData.category = updates.category;
       if (updates.popular !== undefined) updateData.popular = !!updates.popular;
@@ -184,7 +185,7 @@ export const useMenu = () => {
         .eq('id', id);
 
       if (itemError) {
-        console.error('Supabase error updating item:', itemError);
+        console.error('Supabase error updating item:', JSON.stringify(itemError, null, 2));
         throw itemError;
       }
 
@@ -233,7 +234,7 @@ export const useMenu = () => {
 
       await fetchMenuItems();
     } catch (err) {
-      console.error('Error in updateMenuItem:', err);
+      console.error('Error in updateMenuItem:', JSON.stringify(err, null, 2));
       throw err;
     }
   };
